@@ -13,6 +13,7 @@ dist-ssr
 coverage
 playwright-report
 test-results
+release-artifacts/
 *.local
 src-tauri/target/
 *.db

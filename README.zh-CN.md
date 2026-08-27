@@ -6,6 +6,20 @@
 
 [English](README.md)
 
+## 界面截图
+
+![Prompt 成品库](docs/screenshots/recipes.png)
+
+<details>
+  <summary>Prompt 创作台与本地模型目录</summary>
+
+  ![Prompt 创作台](docs/screenshots/studio.png)
+
+  ![本地模型与 LoRA 目录](docs/screenshots/models-and-loras.png)
+</details>
+
+截图使用仓库自带的内存演示数据，不包含维护者的私人资料库或个人文件路径。
+
 ## 项目定位
 
 PromptNook 用来管理完整 Prompt、可复用片段、生成参数、模型/LoRA 资料和备份。它不要求注册云端账号，桌面数据默认保存在本机 SQLite 数据库中。
@@ -27,6 +41,8 @@ PromptNook 用来管理完整 Prompt、可复用片段、生成参数、模型/L
 ## 当前平台
 
 目前仅在 **Windows 10/11** 上开发和验证。代码结构具备跨平台基础，但在 macOS 和 Linux 的打包流程验证完成前，不会宣称正式支持。
+
+在建立可信代码签名流程前，项目不会公开发布 Windows 安装包；源码版本仍可供审阅和自行构建。详见[代码签名策略](docs/CODE_SIGNING.md)。
 
 ## 本地开发
 

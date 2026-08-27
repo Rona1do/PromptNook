@@ -12,6 +12,20 @@
 
 [简体中文](README.zh-CN.md)
 
+## Screenshots
+
+![Prompt recipe library](docs/screenshots/recipes.png)
+
+<details>
+  <summary>Prompt Studio and local model catalog</summary>
+
+  ![Prompt Studio](docs/screenshots/studio.png)
+
+  ![Local model and LoRA catalog](docs/screenshots/models-and-loras.png)
+</details>
+
+The screenshots use the repository's in-memory demo data. They do not contain a maintainer's private library or filesystem paths.
+
 ## Why PromptNook?
 
 Prompt workflows quickly outgrow text files: reusable fragments become hard to find, model-specific defaults get mixed together, and generation settings disappear after a successful experiment. PromptNook keeps those pieces searchable and connected without requiring a cloud account.
@@ -36,6 +50,8 @@ The first public preview still contains some Simplified Chinese interface copy i
 ## Platform status
 
 The desktop app is currently developed and tested on **Windows 10/11**. The stack is cross-platform, but macOS and Linux packaging is not yet verified. Do not present those platforms as supported until their release workflows are tested.
+
+Public Windows installers are withheld until a trusted code-signing workflow is available. Source releases remain available for review and local builds. See the [code signing policy](docs/CODE_SIGNING.md).
 
 ## Quick start
 
