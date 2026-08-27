@@ -6,6 +6,8 @@
 
 [English](README.md)
 
+> 最新版本：[PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview)。在可信 Windows 代码签名配置完成前，该版本只发布源码。
+
 ## 界面截图
 
 ![Prompt 成品库](docs/screenshots/recipes.png)

@@ -3,15 +3,15 @@
 ## Required before making the repository public
 
 - [x] Replace repository-owner placeholders in documentation and issue links.
-- [ ] Add the real repository remote and confirm it points to the intended GitHub account.
-- [ ] Review `git diff --cached` and `git status --ignored`.
-- [ ] Confirm no API keys, tokens, credentials, `.env` files, databases, exports, logs, model weights, private screenshots, or personal paths are tracked.
-- [ ] Run `npm audit` and review every remaining finding.
-- [ ] Run the full frontend and Rust quality checks.
+- [x] Add the real repository remote and confirm it points to the intended GitHub account.
+- [x] Review `git diff --cached` and `git status --ignored`.
+- [x] Confirm no API keys, tokens, credentials, `.env` files, databases, exports, logs, model weights, private screenshots, or personal paths are tracked.
+- [x] Run `npm audit` and review every remaining finding.
+- [x] Run the full frontend and Rust quality checks.
 - [ ] Verify the browser demo and a clean desktop first launch.
-- [ ] Confirm `%LOCALAPPDATA%\PromptNook` is used and the private predecessor's data is untouched.
+- [x] Confirm `%LOCALAPPDATA%\PromptNook` is used and the private predecessor's data is untouched.
 - [ ] Enable GitHub private vulnerability reporting and Dependabot alerts.
-- [ ] Let CI pass before announcing the project.
+- [x] Let CI pass before announcing the project.
 
 ## Required before the first binary release
 
@@ -19,7 +19,7 @@
 - [ ] Smoke-test install, launch, backup, restore, export, import, upgrade, and uninstall.
 - [ ] Verify installer publisher/signing status and document any unsigned-build warning.
 - [ ] Publish SHA-256 checksums.
-- [ ] Mark the release as preview while interface localization and platform verification remain incomplete.
+- [x] Mark the release as preview while interface localization and platform verification remain incomplete.
 
 ## After launch
 

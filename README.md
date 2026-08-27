@@ -8,7 +8,7 @@
   [![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB.svg)](https://tauri.app/)
 </div>
 
-> PromptNook is preparing its first public preview release.
+> Latest release: [PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview). It is source-only while trusted Windows code signing is being arranged.
 
 [简体中文](README.zh-CN.md)
 
