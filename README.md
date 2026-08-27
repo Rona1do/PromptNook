@@ -41,7 +41,7 @@ The desktop app is currently developed and tested on **Windows 10/11**. The stac
 
 Prerequisites:
 
-- Node.js 20 or newer
+- Node.js 24.15 or newer
 - Rust stable with Cargo
 - Windows WebView2 (normally already present on Windows 10/11)
 - Tauri 2 system prerequisites

@@ -30,7 +30,7 @@ PromptNook 用来管理完整 Prompt、可复用片段、生成参数、模型/L
 
 ## 本地开发
 
-请先安装 Node.js 20+、Rust stable、Cargo、Windows WebView2 和 Tauri 2 所需的系统依赖。
+请先安装 Node.js 24.15+、Rust stable、Cargo、Windows WebView2 和 Tauri 2 所需的系统依赖。
 
 ```bash
 git clone https://github.com/Rona1do/PromptNook.git
