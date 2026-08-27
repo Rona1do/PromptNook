@@ -1,0 +1,19 @@
+# Releasing
+
+## Before tagging
+
+1. Confirm the working tree contains no private paths, credentials, databases, exports, or model files.
+2. Update `CHANGELOG.md` and version fields in `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`.
+3. Run the full frontend and Rust checks documented in `README.md`.
+4. Build the Windows installer with `npm run tauri:build` on a clean supported machine.
+5. Install and smoke-test the produced package, including first launch, workspace creation, backup, restore, and uninstall.
+6. Generate SHA-256 checksums for release assets.
+7. Create a signed tag when signing is configured, then draft a GitHub release from the changelog.
+
+## Release notes
+
+Call out database migrations, backup compatibility, new network behavior, platform support, and known limitations. Never claim macOS or Linux support based only on compilation.
+
+## Code signing
+
+Unsigned Windows builds can trigger reputation warnings. Do not commit signing certificates or passwords. Configure signing only through a secure CI secret store and document the certificate owner in release operations outside the repository.

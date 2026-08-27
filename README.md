@@ -1,0 +1,86 @@
+<div align="center">
+  <img src="public/promptnook-icon.png" alt="PromptNook icon" width="128" />
+  <h1>PromptNook</h1>
+  <p>A private, local-first prompt library and studio for generative-image creators.</p>
+
+  [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-5d5fef.svg)](LICENSE)
+  [![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB.svg)](https://tauri.app/)
+</div>
+
+> PromptNook is preparing its first public preview release.
+
+[简体中文](README.zh-CN.md)
+
+## Why PromptNook?
+
+Prompt workflows quickly outgrow text files: reusable fragments become hard to find, model-specific defaults get mixed together, and generation settings disappear after a successful experiment. PromptNook keeps those pieces searchable and connected without requiring a cloud account.
+
+## Highlights
+
+- **Custom workspaces** — create any model or workflow name instead of choosing from a fixed list. Each workspace has isolated recipes, snippets, tags, and Studio defaults.
+- **Recipes and snippets** — organize full prompts, reusable fragments, negative prompts, notes, favorites, categories, and revision history.
+- **Prompt Studio** — assemble prompts from reusable fragments and preserve the parameters behind a generation.
+- **Local model catalog** — scan configured checkpoint, diffusion-model, and LoRA folders; record trigger words and availability.
+- **Language-flexible content** — set any translation target such as `en`, `zh-CN`, `ja`, `de`, or a language name. Translation is off by default.
+- **Local-first storage** — desktop data lives in a local SQLite database. There is no PromptNook account, telemetry, or mandatory network service.
+- **Verified backups** — content-addressed media, integrity checks, recovery mode, trash, JSON/CSV export, and portable `.promptnook` packages.
+- **Browser demo** — the Vite development build provides an in-memory sample mode for evaluating the interface without installing the desktop app.
+
+## Project language policy
+
+English is the repository language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic.
+
+The first public preview still contains some Simplified Chinese interface copy inherited from the original private prototype. Converting all UI copy to locale files and adding an English locale is the first tracked milestone; see [ROADMAP.md](ROADMAP.md). Contributions for additional locales are welcome after that foundation lands.
+
+## Platform status
+
+The desktop app is currently developed and tested on **Windows 10/11**. The stack is cross-platform, but macOS and Linux packaging is not yet verified. Do not present those platforms as supported until their release workflows are tested.
+
+## Quick start
+
+Prerequisites:
+
+- Node.js 20 or newer
+- Rust stable with Cargo
+- Windows WebView2 (normally already present on Windows 10/11)
+- Tauri 2 system prerequisites
+
+```bash
+git clone https://github.com/Rona1do/PromptNook.git
+cd PromptNook
+npm ci
+npm run tauri:dev
+```
+
+To run only the browser demo:
+
+```bash
+npm run dev
+```
+
+## Quality checks
+
+```bash
+npm test
+npm run build
+cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+## Privacy and translation
+
+Translation is disabled by default. When enabled, only text selected for translation is sent to the configured endpoint. PromptNook supports local Ollama and OpenAI-compatible endpoints; credentials are stored with the operating-system credential manager rather than in SQLite. Read [docs/PRIVACY.md](docs/PRIVACY.md) before enabling a network provider.
+
+## Data location
+
+On Windows, PromptNook stores its desktop data under `%LOCALAPPDATA%\PromptNook\vault`. This is intentionally separate from older/private builds. Choose a second physical drive for backups when possible.
+
+## Contributing
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and issues labeled `good first issue`. By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should be reported privately using [SECURITY.md](SECURITY.md).
+
+## License
+
+PromptNook is released under the [MIT License](LICENSE).

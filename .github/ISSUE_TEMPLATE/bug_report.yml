@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible problem in PromptNook.
+title: "[Bug]: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include private prompts, API keys, personal paths, databases, exports, or model files.
+  - type: input
+    id: version
+    attributes:
+      label: PromptNook version or commit
+      placeholder: v0.1.0-preview or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - Desktop app
+        - Browser demo
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Use sanitized sample data.
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional sanitized context
+      description: Logs or screenshots must not expose private data.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: I removed private data and credentials from this report.
+          required: true
+        - label: This is not a security vulnerability; I will use a private advisory for security issues.
+          required: true
