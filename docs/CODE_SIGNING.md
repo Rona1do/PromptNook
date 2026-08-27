@@ -10,7 +10,14 @@ PromptNook does not publish unsigned Windows executables or installers as offici
 - Signing credentials must remain in a managed signing service or hardware-backed store; they are never committed to the repository.
 - Every signing request requires explicit approval by the maintainer.
 
-The preferred route for this open-source project is a free SignPath Foundation subscription. Until that application is accepted and the workflow is configured, releases contain source archives only.
+The preferred route for this open-source project is a SignPath Foundation subscription. The application is currently pending. If accepted, official Windows releases will state: **Free code signing provided by SignPath.io, certificate by SignPath Foundation.** Until the application is accepted and the workflow is configured, releases contain source archives only.
+
+## Team roles
+
+- Committer and reviewer: [Rona1do](https://github.com/Rona1do)
+- Signing approver: [Rona1do](https://github.com/Rona1do)
+
+Changes from outside contributors must be reviewed before merge. Every release-signing request requires manual approval from the signing approver.
 
 ## Privacy statement
 
