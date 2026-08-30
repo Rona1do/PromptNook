@@ -8,6 +8,8 @@
 
 > 最新版本：[PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview)。在可信 Windows 代码签名配置完成前，该版本只发布源码。
 
+**[在线体验浏览器演示](https://rona1do.github.io/PromptNook/)** —— 使用临时示例数据浏览界面，不上传也不持久保存任何内容。
+
 ## 界面截图
 
 ![Prompt 成品库](docs/screenshots/recipes.png)

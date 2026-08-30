@@ -11,6 +11,8 @@
 
 > Latest release: [PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview). It is source-only while trusted Windows code signing is being arranged.
 
+**[Try the browser demo](https://rona1do.github.io/PromptNook/)** — explore the interface with temporary sample data; nothing is uploaded or persisted.
+
 [简体中文](README.zh-CN.md)
 
 ## Screenshots

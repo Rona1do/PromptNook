@@ -3,10 +3,13 @@ import react from "@vitejs/plugin-react";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
+// GitHub Pages serves project sites from /<repository>/ rather than the origin root.
+const base = process.env.GITHUB_PAGES === "true" ? "/PromptNook/" : "/";
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+  base,
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
