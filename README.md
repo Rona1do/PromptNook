@@ -2,6 +2,7 @@
   <img src="public/promptnook-icon.png" alt="PromptNook icon" width="128" />
   <h1>PromptNook</h1>
   <p>A private, local-first prompt library and studio for generative-image creators.</p>
+  <p>Designed for workflows around Stable Diffusion, SDXL, FLUX, ComfyUI, and other image-generation tools.</p>
 
   [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-5d5fef.svg)](LICENSE)
@@ -96,6 +97,8 @@ On Windows, PromptNook stores its desktop data under `%LOCALAPPDATA%\PromptNook\
 ## Contributing
 
 Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and issues labeled `good first issue`. By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should be reported privately using [SECURITY.md](SECURITY.md).
+
+Questions, workflow ideas, and early feedback are welcome in [GitHub Discussions](https://github.com/Rona1do/PromptNook/discussions). Please use [Issues](https://github.com/Rona1do/PromptNook/issues) for reproducible bugs and scoped feature requests.
 
 ## License
 

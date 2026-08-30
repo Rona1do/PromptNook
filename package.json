@@ -24,6 +24,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "node scripts/run-e2e.mjs",
+    "social-preview": "node scripts/render-social-preview.mjs",
     "check": "npm run test && npm run build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
