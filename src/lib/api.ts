@@ -7,6 +7,7 @@ import type {
   AssetImportInput,
   BackupSnapshot,
   Category,
+  ComfyWorkflowExportResult,
   Dashboard,
   HealthStatus,
   Recipe,
@@ -144,7 +145,7 @@ const starterSnippets: Snippet[] = [
     id: "snippet-vsign",
     text: "She made a V-sign at the camera",
     translation: "她对着镜头比出 V 字手势",
-    notes: "适合半身人像，手部最好不要离镜头太近。",
+    notes: "Works best for half-body portraits with hands away from the lens.",
     categoryIds: ["cat-subject", "cat-action"],
     favorite: true,
     translationLocked: true,
@@ -196,7 +197,7 @@ const starterSnippets: Snippet[] = [
     id: "snippet-film",
     text: "cinematic film still",
     translation: "电影胶片剧照",
-    notes: "可与 film grain 搭配。",
+    notes: "Pairs well with film grain.",
     categoryIds: ["cat-style"],
     favorite: true,
     translationLocked: false,
@@ -236,7 +237,7 @@ const starterSnippets: Snippet[] = [
 const starterRecipes: Recipe[] = [
   {
     id: "recipe-window",
-    title: "窗边晨光人像",
+    title: "Morning window portrait",
     status: "reproducible",
     modality: "text_to_image",
     positivePrompt:
@@ -269,7 +270,7 @@ const starterRecipes: Recipe[] = [
     },
     assets: [],
     tagIds: ["tag-portrait", "tag-photography"],
-    notes: "肤色偏暖时降低电影 LoRA 到 0.75。",
+    notes: "Lower the cinematic LoRA to 0.75 if skin tones become too warm.",
     favorite: true,
     rating: 5,
     usageCount: 9,
@@ -279,7 +280,7 @@ const starterRecipes: Recipe[] = [
   },
   {
     id: "recipe-rain",
-    title: "雨夜霓虹街头",
+    title: "Neon street in the rain",
     status: "draft",
     modality: "text_to_image",
     positivePrompt:
@@ -301,7 +302,7 @@ const starterRecipes: Recipe[] = [
     },
     assets: [],
     tagIds: ["tag-landscape", "tag-photography"],
-    notes: "待测试雨丝的权重。",
+    notes: "Rain-streak weighting still needs testing.",
     favorite: false,
     rating: 3,
     usageCount: 2,
@@ -311,7 +312,7 @@ const starterRecipes: Recipe[] = [
   },
   {
     id: "recipe-product",
-    title: "极简香水产品照",
+    title: "Minimal perfume product shot",
     status: "reproducible",
     modality: "text_to_image",
     positivePrompt:
@@ -346,9 +347,9 @@ const starterRecipes: Recipe[] = [
 const starterTips: Tip[] = [
   {
     id: "tip-global-1",
-    title: "先锁构图，再补细节",
+    title: "Lock composition before adding detail",
     content:
-      "先用少量关键词确定主体、景别和光线；构图稳定后再加入材质与风格词，定位问题会更容易。",
+      "Start with a few words for subject, framing, and light. Add materials and style only after the composition is stable.",
     scope: "global",
     favorite: true,
     createdAt: now,
@@ -356,9 +357,9 @@ const starterTips: Tip[] = [
   },
   {
     id: "tip-flux-1",
-    title: "FLUX 更适合自然语言",
+    title: "FLUX favors natural language",
     content:
-      "描述人物动作时优先使用完整句子，避免堆叠过多同义短词。CFG 通常从 3.5 左右开始尝试。",
+      "Prefer full sentences for character actions instead of stacking synonyms. A CFG around 3.5 is a useful starting point.",
     scope: "model",
     targetId: "model-flux",
     targetName: "FLUX.1-dev-fp8",
@@ -368,9 +369,9 @@ const starterTips: Tip[] = [
   },
   {
     id: "tip-lora-1",
-    title: "电影感 LoRA 权重",
+    title: "Cinematic LoRA weight",
     content:
-      "人物肤色过度偏色时，先把模型权重从 1.0 降至 0.75–0.85，而不是继续增加负面词。",
+      "When skin tones shift too far, lower model strength from 1.0 to 0.75–0.85 before adding more negative terms.",
     scope: "lora",
     targetId: "lora-film",
     targetName: "Cinematic Film Still",
@@ -530,8 +531,8 @@ export const api = {
   async healthCheck() {
     return call<HealthStatus>("health_check", undefined, () => ({
       status: "ok",
-      databasePath: "浏览器演示内存",
-      vaultPath: "浏览器演示内存",
+      databasePath: "Browser demo memory",
+      vaultPath: "Browser demo memory",
       schemaVersion: 1,
       recoveryMode: false,
     }));
@@ -635,7 +636,7 @@ export const api = {
             payload.text.trim().toLocaleLowerCase(),
       );
       if (duplicate) {
-        throw new Error(`当前模型下已存在相同的单 Prompt（${duplicate.id}）`);
+        throw new Error(`An identical snippet already exists in this workspace (${duplicate.id})`);
       }
       const snippet = stamp({
         ...payload,
@@ -969,7 +970,7 @@ export const api = {
             id: item.id,
             entityType: "resource",
             title: item.name,
-            subtitle: item.resourceType === "lora" ? "LoRA" : "基础模型",
+            subtitle: item.resourceType === "lora" ? "LoRA" : "Base model",
           });
         }
       });
@@ -1066,7 +1067,7 @@ export const api = {
   },
   async getAssetData(id: string) {
     return call<AssetData>("get_asset_data", { id }, () => {
-      throw new Error("浏览器演示模式没有持久图片对象");
+      throw new Error("Browser demo mode does not persist image objects");
     });
   },
   async detachAsset(
@@ -1103,14 +1104,14 @@ export const api = {
           return {
             text:
               translated === request.text
-                ? "待翻译 · 请在设置中配置本地翻译服务"
+                ? "Pending translation · Configure a translation service in Settings"
                 : translated,
             cached: false,
           };
         },
       ),
       TRANSLATION_UI_TIMEOUT_MS,
-      "翻译服务超过 100 秒仍未响应，已停止等待。请在设置中测试 API 地址、模型和密钥。",
+      "The translation service did not respond within 100 seconds. Test the endpoint, model, and key in Settings.",
     );
   },
   async saveTranslationApiKey(
@@ -1186,7 +1187,7 @@ export const api = {
         createdAt: new Date().toISOString(),
         size: 3_428_344,
         status: "valid",
-        location: memory.settings.backupPath || "尚未选择异盘位置（演示快照）",
+        location: memory.settings.backupPath || "No secondary location selected (demo snapshot)",
       };
       memory.backups.unshift(backup);
       return backup;
@@ -1215,7 +1216,18 @@ export const api = {
   },
   async exportData(format: "promptnook" | "json" | "csv", targetPath?: string) {
     return call<string>("export_data", { format, targetPath }, () =>
-      Promise.resolve(`演示模式：已准备 ${format.toUpperCase()} 导出`),
+      Promise.resolve(`Demo mode: ${format.toUpperCase()} export prepared`),
+    );
+  },
+  async exportComfyUiWorkflow(recipeId: string, targetPath?: string) {
+    return call<ComfyWorkflowExportResult>(
+      "export_comfyui_workflow",
+      { recipeId, targetPath },
+      () => ({
+        path: `Browser demo: ${recipeId}.json`,
+        warnings: ["Desktop storage is required to write a workflow file."],
+        format: "ComfyUI Workflow JSON 0.4",
+      }),
     );
   },
   async loadAll(): Promise<AppData> {

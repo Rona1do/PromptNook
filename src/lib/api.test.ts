@@ -139,6 +139,34 @@ describe("browser fallback bootstrap", () => {
     );
     expect(isDesktopRuntime()).toBe(true);
   });
+
+  it("exports ComfyUI workflow JSON through desktop IPC and explains the browser fallback", async () => {
+    await expect(api.exportComfyUiWorkflow("recipe-window")).resolves.toEqual({
+      path: "Browser demo: recipe-window.json",
+      warnings: ["Desktop storage is required to write a workflow file."],
+      format: "ComfyUI Workflow JSON 0.4",
+    });
+
+    (
+      window as Window & {
+        __TAURI_INTERNALS__?: unknown;
+      }
+    ).__TAURI_INTERNALS__ = {};
+    const result = {
+      path: "C:\\Exports\\Morning-window-portrait.comfyui.json",
+      warnings: [],
+      format: "ComfyUI Workflow JSON 0.4",
+    };
+    invokeMock.mockResolvedValueOnce(result);
+
+    await expect(
+      api.exportComfyUiWorkflow("recipe-window", result.path),
+    ).resolves.toEqual(result);
+    expect(invokeMock).toHaveBeenCalledWith("export_comfyui_workflow", {
+      recipeId: "recipe-window",
+      targetPath: result.path,
+    });
+  });
 });
 
 describe("recipe, snippet, and tip CRUD", () => {
@@ -199,7 +227,7 @@ describe("recipe, snippet, and tip CRUD", () => {
         positivePrompt: "",
       }),
     );
-    expect(withoutPrompt.title).toMatch(/^未命名 Prompt · \d{4}-\d{2}-\d{2}$/);
+    expect(withoutPrompt.title).toMatch(/^Untitled recipe · \d{4}-\d{2}-\d{2}$/);
   });
 
   it("creates, updates, lists, and deletes a bilingual snippet", async () => {
@@ -320,13 +348,13 @@ describe("search and translation fallback", () => {
     expect(invokeMock).toHaveBeenCalledWith("translate_text", { request });
   });
 
-  it("searches Chinese recipe text, snippet translations/categories, and tips", async () => {
+  it("searches translated recipe text, snippet translations/categories, and tips", async () => {
     await api.saveSnippet(makeSnippet());
 
-    const recipeResults = await api.searchAll("晨光");
+    const recipeResults = await api.searchAll("清晨柔光");
     const translationResults = await api.searchAll("日落时");
     const categoryResults = await api.searchAll("Subject");
-    const tipResults = await api.searchAll("权重");
+    const tipResults = await api.searchAll("weight");
 
     expect(recipeResults).toEqual(
       expect.arrayContaining([
@@ -390,7 +418,7 @@ describe("search and translation fallback", () => {
     await vi.advanceTimersByTimeAsync(350);
 
     await expect(unknownPromise).resolves.toEqual({
-      text: "待翻译 · 请在设置中配置本地翻译服务",
+      text: "Pending translation · Configure a translation service in Settings",
       cached: false,
     });
   });
@@ -520,7 +548,7 @@ describe("settings and backup fallback", () => {
 
     await expect(api.restoreBackup(backup.id)).resolves.toBeUndefined();
     await expect(api.exportData("json")).resolves.toBe(
-      "演示模式：已准备 JSON 导出",
+      "Demo mode: JSON export prepared",
     );
   });
 

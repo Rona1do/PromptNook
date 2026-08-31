@@ -247,7 +247,7 @@ fn query_json_rows(conn: &Connection, sql: &str) -> Result<Vec<serde_json::Value
     result
 }
 
-fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), String> {
+pub(crate) fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), String> {
     let temporary = target.with_extension(format!(
         "{}.{}.tmp",
         target
