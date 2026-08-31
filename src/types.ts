@@ -40,6 +40,12 @@ export interface GenerationParams {
   seed: string | null;
 }
 
+export interface ComfyWorkflowExportResult {
+  path: string;
+  warnings: string[];
+  format: "ComfyUI Workflow JSON 0.4" | string;
+}
+
 export interface RecipeLora {
   resourceId: EntityId;
   name: string;

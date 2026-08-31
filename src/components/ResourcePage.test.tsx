@@ -87,7 +87,7 @@ function renderPage(items: Resource[] = resources) {
 }
 
 function searchFor(value: string) {
-  fireEvent.change(screen.getByRole("textbox", { name: "搜索模型与 LoRA" }), {
+  fireEvent.change(screen.getByRole("textbox", { name: "Search models & LoRAs" }), {
     target: { value },
   });
 }
@@ -121,7 +121,7 @@ describe("ResourcePage search and filters", () => {
 
     searchFor("二次元人物");
     expectOnlyResource("Portrait_Hero");
-    expect(screen.getByText("显示 1 / 3")).toBeVisible();
+    expect(screen.getByText("Show 1 / 3")).toBeVisible();
   });
 
   it("combines resource-type filtering with search and can clear an empty result", () => {
@@ -130,24 +130,24 @@ describe("ResourcePage search and filters", () => {
     fireEvent.click(screen.getByRole("button", { name: /^LoRA1$/ }));
     searchFor("flux");
 
-    expect(screen.getByText("没有符合条件的资源")).toBeVisible();
-    expect(screen.getByText("显示 0 / 3")).toBeVisible();
+    expect(screen.getByText("No matching resources")).toBeVisible();
+    expect(screen.getByText("Show 0 / 3")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "清除搜索与筛选" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear search & filters" }));
 
     expect(screen.getAllByRole("article")).toHaveLength(3);
-    expect(screen.getByText("显示 3 / 3")).toBeVisible();
+    expect(screen.getByText("Show 3 / 3")).toBeVisible();
     expect(
-      screen.getByRole("textbox", { name: "搜索模型与 LoRA" }),
+      screen.getByRole("textbox", { name: "Search models & LoRAs" }),
     ).toHaveValue("");
   });
 
   it("shows a scan-oriented empty state when no resources have been indexed", () => {
     renderPage([]);
 
-    expect(screen.getByText("尚未扫描到模型资源")).toBeVisible();
-    expect(screen.getByRole("button", { name: "重新扫描" })).toBeVisible();
-    expect(screen.getByText("显示 0 / 0")).toBeVisible();
+    expect(screen.getByText("No model resources scanned yet")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Scan again" })).toBeVisible();
+    expect(screen.getByText("Show 0 / 0")).toBeVisible();
   });
 
   it("imports selected recent download LoRAs and names them in the toast", async () => {
@@ -216,25 +216,25 @@ describe("ResourcePage search and filters", () => {
     });
 
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "导入下载的 LoRA" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import downloaded LoRAs" }));
 
     expect(
-      await screen.findByRole("dialog", { name: "从下载目录导入 LoRA" }),
+      await screen.findByRole("dialog", { name: "Import LoRAs from Downloads" }),
     ).toBeVisible();
     expect(
       (await screen.findAllByText("portrait_style_v2")).length,
     ).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("目标已存在")).toBeVisible();
+    expect(screen.getByText("Already exists")).toBeVisible();
     expect(screen.getByText("older_not_default")).toBeVisible();
-    expect(screen.getByText(/即将导入这些 LoRA/)).toBeVisible();
+    expect(screen.getByText(/These LoRAs will be imported/)).toBeVisible();
     // Default selection is only within the last 6 hours (and not already existing).
     expect(
-      screen.getByRole("button", { name: "确认导入 1" }),
+      screen.getByRole("button", { name: "Import 1 selected" }),
     ).toBeVisible();
-    expect(screen.getByText(/导入为/)).toBeVisible();
-    expect(screen.getByText("移动")).toBeVisible();
+    expect(screen.getByText(/Import mode/)).toBeVisible();
+    expect(screen.getByText("move")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "确认导入 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Import 1 selected" }));
 
     await waitFor(() => {
       expect(importDownloadLoras).toHaveBeenCalledWith({

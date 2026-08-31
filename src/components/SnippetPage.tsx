@@ -100,14 +100,14 @@ function SnippetEditor({
     if (!draft.text.trim()) return;
     setTranslationError("");
     setTranslating(true);
-    setStatusLine("正在翻译单 Prompt…");
+    setStatusLine("Translating snippet…");
     try {
       const result = await api.translateText({
         text: draft.text,
         targetLanguage,
       });
       const translated = (result.text ?? "").trim();
-      if (!translated) throw new Error("翻译服务返回了空译文");
+      if (!translated) throw new Error("The translation service returned an empty result");
       setDraft((current) => ({
         ...current,
         translation: translated,
@@ -116,9 +116,9 @@ function SnippetEditor({
       if (markManual) {
         manualTranslatedSource.current = draft.text.trim();
       }
-      setStatusLine("翻译完成");
+      setStatusLine("Translation complete");
     } catch (error) {
-      const message = `翻译失败：${readableError(error)}`;
+      const message = `Translation failed: ${readableError(error)}`;
       setTranslationError(message);
       setStatusLine(message);
       onToast(message);
@@ -131,13 +131,13 @@ function SnippetEditor({
     setSaveError("");
     setStatusLine("");
     if (!draft.text.trim()) {
-      const message = "英文原文不能为空";
+      const message = "Source prompt cannot be empty";
       setSaveError(message);
       onToast(message);
       return;
     }
     if (duplicate) {
-      const message = "已存在相同的单 Prompt，请编辑原词条";
+      const message = "An identical snippet already exists; edit the existing item";
       setSaveError(message);
       onToast(message);
       return;
@@ -149,19 +149,19 @@ function SnippetEditor({
       needsTranslation(source, draft.translation);
 
     setSaving(true);
-    // 只翻一次：交给后端 save_snippet，前端不再先请求一遍。
+    // Translate only once in save_snippet; the frontend does not make a separate request.
     if (willAuto) {
       setTranslating(true);
-      setStatusLine("正在翻译并保存（仅一次请求）…");
+      setStatusLine("Translating and saving (one request)…");
     } else {
-      setStatusLine("正在保存…");
+      setStatusLine("Saving…");
     }
     try {
       await onSave(draft);
-      setStatusLine("已保存");
+      setStatusLine("Saved");
       onClose();
     } catch (error) {
-      const message = `保存失败：${readableError(error)}`;
+      const message = `Save failed: ${readableError(error)}`;
       setSaveError(message);
       setStatusLine(message);
       onToast(message);
@@ -173,12 +173,12 @@ function SnippetEditor({
 
   function applyRevision(snapshot: unknown) {
     if (!snapshot || typeof snapshot !== "object") {
-      onToast("这个历史版本无法读取");
+      onToast("This revision cannot be read");
       return;
     }
     const restored = snapshot as Partial<SnippetInput>;
     if (typeof restored.text !== "string") {
-      onToast("历史版本缺少英文原文字段");
+      onToast("This revision is missing its source prompt");
       return;
     }
     setDraft((current) => ({
@@ -189,14 +189,14 @@ function SnippetEditor({
       updatedAt: current.updatedAt,
     }));
     setHistoryOpen(false);
-    onToast("历史版本已载入；检查后点击保存才会生效");
+    onToast("Revision loaded. Review it and click Save to apply it");
   }
 
   return (
     <>
     <Modal
-      title={snippet ? "编辑单 Prompt" : "新建单 Prompt"}
-      eyebrow="灵感词条"
+      title={snippet ? "Edit snippet" : "New snippet"}
+      eyebrow="Idea snippet"
       onClose={onClose}
       footer={
         <>
@@ -214,7 +214,7 @@ function SnippetEditor({
                 ? statusLine
                 : translationError
                   ? translationError
-                  : "未点「自动翻译」时，保存会先自动翻译"}
+                  : "Saving will translate first unless Auto translate has already run"}
           </div>
           {snippet ? (
             <Button
@@ -222,11 +222,11 @@ function SnippetEditor({
               icon={<History size={15} />}
               onClick={() => setHistoryOpen(true)}
             >
-              修改历史
+              Revision history
             </Button>
           ) : null}
           <Button variant="ghost" onClick={onClose} disabled={saving}>
-            取消
+            Cancel
           </Button>
           <Button
             icon={<Check size={16} />}
@@ -235,19 +235,19 @@ function SnippetEditor({
           >
             {saving
               ? translating
-                ? "翻译并保存中…"
-                : "保存中…"
+                ? "Translating and saving…"
+                : "Saving…"
               : translating
-                ? "翻译中…"
-                : "保存词条"}
+                ? "Translating…"
+                : "Save snippet"}
           </Button>
         </>
       }
     >
       <div className="snippet-editor">
         <Field
-          label="英文原文"
-          hint="可以是一句话、短语或单词；保存时会自动翻译中文"
+          label="Source prompt"
+          hint="Use a sentence, phrase, or word; it can be translated automatically when saved"
         >
           <textarea
             autoFocus
@@ -269,7 +269,7 @@ function SnippetEditor({
                 text: text.replace(/^\uFEFF/, ""),
                 translation: "",
               }));
-              setStatusLine("已粘贴英文，保存时将自动翻译");
+              setStatusLine("Source text pasted; it will be translated when saved");
             }}
           />
         </Field>
@@ -277,19 +277,19 @@ function SnippetEditor({
           <button
             type="button"
             className="duplicate-warning"
-            onClick={() => onToast(`重复词条：${duplicate.translation || duplicate.text}`)}
+            onClick={() => onToast(`Duplicate snippet: ${duplicate.translation || duplicate.text}`)}
           >
             <Sparkles size={16} />
-            已有相同词条，建议合并笔记和分类
+            An identical snippet exists; consider merging notes and categories
             <ChevronRight size={16} />
           </button>
         ) : null}
         <div className="translation-editor-head">
-          <span><Languages size={16} />中文译文</span>
+          <span><Languages size={16} />Translation</span>
           <div>
             <span className={draft.translationLocked ? "lock-state locked" : "lock-state"}>
               {draft.translationLocked ? <Lock size={13} /> : <LockOpen size={13} />}
-              {draft.translationLocked ? "已锁定" : "可自动更新"}
+              {draft.translationLocked ? "Locked" : "Can update automatically"}
             </span>
             <Button
               size="sm"
@@ -297,15 +297,16 @@ function SnippetEditor({
               disabled={translating || !draft.text.trim() || draft.translationLocked}
               onClick={() => void translate()}
             >
-              {translating ? "翻译中…" : "自动翻译"}
+              {translating ? "Translating…" : "Auto translate"}
             </Button>
           </div>
         </div>
         <textarea
           className="translation-input"
+          aria-label="Translation"
           rows={3}
           value={draft.translation}
-          placeholder="她对着镜头比出 V 字手势"
+          placeholder="She makes a V sign toward the camera"
           onChange={(event) =>
             setDraft((current) => ({
               ...current,
@@ -320,11 +321,11 @@ function SnippetEditor({
         ) : null}
         <div className="setting-row compact-setting">
           <div>
-            <strong>锁定手工译文</strong>
-            <p>批量翻译时不会覆盖你确认过的中文。</p>
+            <strong>Lock manual translation</strong>
+            <p>Batch translation never overwrites a translation you have confirmed.</p>
           </div>
           <Toggle
-            label="锁定手工译文"
+            label="Lock manual translation"
             checked={draft.translationLocked}
             onChange={(checked) =>
               setDraft((current) => ({
@@ -334,7 +335,7 @@ function SnippetEditor({
             }
           />
         </div>
-        <Field label="分类" hint="一个词条可以属于多个分类">
+        <Field label="Categories" hint="A snippet can belong to multiple categories">
           <div className="category-check-grid">
             {categories.map((category) => {
               const selected = draft.categoryIds.includes(category.id);
@@ -361,11 +362,11 @@ function SnippetEditor({
             })}
           </div>
         </Field>
-        <Field label="笔记">
+        <Field label="Notes">
           <textarea
             rows={3}
             value={draft.notes}
-            placeholder="适用场景、组合建议或容易踩坑的地方…"
+            placeholder="Use cases, combination ideas, or pitfalls…"
             onChange={(event) =>
               setDraft((current) => ({ ...current, notes: event.target.value }))
             }
@@ -444,27 +445,27 @@ function CategoryManager({
 
   return (
     <Modal
-      title="管理分类"
-      eyebrow="单 Prompt"
+      title="Manage categories"
+      eyebrow="Snippets"
       size="sm"
       onClose={onClose}
-      footer={<Button onClick={onClose}>完成</Button>}
+      footer={<Button onClick={onClose}>Done</Button>}
     >
       <div className="category-manager">
         <div className="category-create">
           <input
             value={newName}
-            placeholder="新分类名称"
+            placeholder="New category name"
             onChange={(event) => setNewName(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") void createCategory();
             }}
           />
           <Select value={newParent} onChange={(event) => setNewParent(event.target.value)}>
-            <option value="">顶级分类</option>
+            <option value="">Top-level category</option>
             {items.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name} 的子分类
+                {category.name} sub-category
               </option>
             ))}
           </Select>
@@ -474,10 +475,10 @@ function CategoryManager({
             disabled={!newName.trim()}
             onClick={() => void createCategory()}
           >
-            添加
+            Add
           </Button>
         </div>
-        <p className="drag-note">拖动可调整分类顺序</p>
+        <p className="drag-note">Drag to reorder categories</p>
         <div className="category-manager-list">
           {items.map((category) => (
             <article
@@ -509,19 +510,19 @@ function CategoryManager({
                   {category.parentId ? (
                     <small>
                       {items.find((item) => item.id === category.parentId)?.name}
-                      {" "}的子分类
+                      {" "}sub-category
                     </small>
                   ) : null}
                 </div>
               )}
               <IconButton
-                label="重命名"
+                label="Rename"
                 onClick={() => setEditingId(category.id)}
               >
                 <Pencil size={15} />
               </IconButton>
               <IconButton
-                label="删除分类"
+                label="Delete category"
                 onClick={async () => {
                   await onDelete(category);
                   setItems((current) =>
@@ -622,7 +623,7 @@ export function SnippetPage({
 
   function drawRandomSnippet() {
     if (!visible.length) {
-      onToast("当前筛选下没有可抽的词条");
+      onToast("No snippets are available under the current filters");
       return;
     }
     const pick = visible[Math.floor(Math.random() * visible.length)];
@@ -633,9 +634,9 @@ export function SnippetPage({
     <div className="page snippets-page">
       <header className="page-header">
         <div>
-          <span className="eyebrow">可复用的语言积木</span>
-          <h1>单 Prompt</h1>
-          <p>收藏一句话、一个词组或一个单词，让灵感随时可取。</p>
+          <span className="eyebrow">Reusable prompt building blocks</span>
+          <h1>Snippets</h1>
+          <p>Save sentences, phrases, or words as reusable building blocks.</p>
         </div>
         <div className="page-actions">
           <Button
@@ -643,17 +644,17 @@ export function SnippetPage({
             icon={<Dices size={16} />}
             onClick={drawRandomSnippet}
           >
-            抽卡
+            Draw
           </Button>
           <Button
             variant="secondary"
             icon={<FolderTree size={16} />}
             onClick={() => setManagingCategories(true)}
           >
-            管理分类
+            Manage categories
           </Button>
           <Button icon={<Plus size={17} />} onClick={() => setEditing("new")}>
-            新建单 Prompt
+            New snippet
           </Button>
         </div>
       </header>
@@ -661,9 +662,9 @@ export function SnippetPage({
       <div className="snippet-layout">
         <aside className="category-sidebar">
           <div className="category-sidebar-title">
-            <span>分类</span>
+            <span>Categories</span>
             <IconButton
-              label="管理分类"
+              label="Manage categories"
               onClick={() => setManagingCategories(true)}
             >
               <Pencil size={14} />
@@ -675,7 +676,7 @@ export function SnippetPage({
             onClick={() => setSelectedCategory("all")}
           >
             <span className="category-all-icon"><Sparkles size={14} /></span>
-            全部词条
+            All snippets
             <i>{snippets.length}</i>
           </button>
           {sortedCategories.map((category) => {
@@ -711,7 +712,7 @@ export function SnippetPage({
               <Search size={16} />
               <input
                 value={query}
-                placeholder="搜索英文、中文或笔记"
+                placeholder="Search source text, translations, or notes"
                 onChange={(event) => setQuery(event.target.value)}
               />
               {query ? (
@@ -724,10 +725,10 @@ export function SnippetPage({
             <div className="segmented-filter compact-segmented">
               {(
                 [
-                  ["all", "常用"],
-                  ["favorite", "收藏"],
-                  ["recent", "最近"],
-                  ["least", "少用"],
+                  ["all", "Frequently used"],
+                  ["favorite", "Favorite"],
+                  ["recent", "Recent"],
+                  ["least", "Least used"],
                 ] as const
               ).map(([key, label]) => (
                 <button
@@ -758,7 +759,7 @@ export function SnippetPage({
                         favorite: !snippet.favorite,
                       })
                     }
-                    aria-label={snippet.favorite ? "取消收藏" : "收藏"}
+                    aria-label={snippet.favorite ? "Remove favorite" : "Favorite"}
                   >
                     <Star
                       size={17}
@@ -773,10 +774,10 @@ export function SnippetPage({
                     <strong>{snippet.text}</strong>
                     <span className="snippet-translation-line">
                       {snippet.translation || (
-                        <em><Languages size={14} />待翻译</em>
+                        <em><Languages size={14} />Pending translation</em>
                       )}
                       {snippet.translationLocked ? (
-                        <Lock size={13} aria-label="译文已锁定" />
+                        <Lock size={13} aria-label="Translation locked" />
                       ) : null}
                     </span>
                   </button>
@@ -797,37 +798,37 @@ export function SnippetPage({
                       <small>+{snippet.categoryIds.length - 3}</small>
                     ) : null}
                   </div>
-                  <span className="usage-count">使用 {snippet.usageCount} 次</span>
+                  <span className="usage-count">Used {snippet.usageCount} times</span>
                   <IconButton
-                    label="复制英文原文"
+                    label="Copy source prompt"
                     onClick={() =>
                       void navigator.clipboard
                         .writeText(snippet.text)
-                        .then(() => onToast("已复制英文原文"))
+                        .then(() => onToast("Source prompt copied"))
                     }
                   >
                     <Copy size={17} />
                   </IconButton>
                   <IconButton
-                    label="复制中文译文"
+                    label="Copy translation"
                     disabled={!snippet.translation.trim()}
                     onClick={() =>
                       void navigator.clipboard
                         .writeText(snippet.translation)
-                        .then(() => onToast("已复制中文译文"))
+                        .then(() => onToast("Translation copied"))
                     }
                   >
                     <Languages size={17} />
                   </IconButton>
                   <IconButton
-                    label="加入创作台"
+                    label="Add to Studio"
                     onClick={() => onUseInStudio(snippet)}
                   >
                     <BookmarkPlus size={17} />
                   </IconButton>
                   <div className="more-menu">
                     <IconButton
-                      label="更多操作"
+                      label="More actions"
                       onClick={() =>
                         setMenuId((current) =>
                           current === snippet.id ? null : snippet.id,
@@ -843,20 +844,20 @@ export function SnippetPage({
                           onClick={() =>
                             void navigator.clipboard
                               .writeText(snippet.text)
-                              .then(() => onToast("已复制英文原文"))
+                              .then(() => onToast("Source prompt copied"))
                           }
                         >
-                          <Copy size={15} />复制原文
+                          <Copy size={15} />Copy source
                         </button>
                         <button type="button" onClick={() => setEditing(snippet)}>
-                          <Pencil size={15} />编辑
+                          <Pencil size={15} />Edit
                         </button>
                         <button
                           type="button"
                           className="danger"
                           onClick={() => void onDelete(snippet)}
                         >
-                          <Trash2 size={15} />移入回收站
+                          <Trash2 size={15} />Move to Trash
                         </button>
                       </div>
                     ) : null}
@@ -867,14 +868,14 @@ export function SnippetPage({
           ) : (
             <EmptyState
               icon={<Search size={23} />}
-              title="这里还没有词条"
-              description="换个分类或筛选条件，也可以创建你的第一条灵感。"
+              title="No snippets here yet"
+              description="Try another category or filter, or create your first snippet."
               action={
                 <Button
                   icon={<Plus size={16} />}
                   onClick={() => setEditing("new")}
                 >
-                  新建单 Prompt
+                  New snippet
                 </Button>
               }
             />
@@ -910,11 +911,11 @@ export function SnippetPage({
 
       {drawCard ? (
         <Modal
-          title="抽卡结果"
+          title="Draw result"
           eyebrow={
             selectedCategory === "all"
-              ? `从 ${visible.length} 条中抽取`
-              : `从当前分类 ${visible.length} 条中抽取`
+              ? `Draw from ${visible.length} snippets`
+              : `Draw from ${visible.length} snippets in the current categories`
           }
           onClose={() => setDrawCard(null)}
           footer={
@@ -924,7 +925,7 @@ export function SnippetPage({
                 icon={<Dices size={15} />}
                 onClick={drawRandomSnippet}
               >
-                再抽一次
+                Draw again
               </Button>
               <Button
                 variant="secondary"
@@ -932,10 +933,10 @@ export function SnippetPage({
                 onClick={() =>
                   void navigator.clipboard
                     .writeText(drawCard.text)
-                    .then(() => onToast("已复制英文原文"))
+                    .then(() => onToast("Source prompt copied"))
                 }
               >
-                复制英文
+                Copy source
               </Button>
               <Button
                 variant="secondary"
@@ -944,10 +945,10 @@ export function SnippetPage({
                 onClick={() =>
                   void navigator.clipboard
                     .writeText(drawCard.translation)
-                    .then(() => onToast("已复制中文译文"))
+                    .then(() => onToast("Translation copied"))
                 }
               >
-                复制中文
+                Copy translation
               </Button>
               <Button
                 icon={<BookmarkPlus size={15} />}
@@ -956,7 +957,7 @@ export function SnippetPage({
                   setDrawCard(null);
                 }}
               >
-                加入创作台
+                Add to Studio
               </Button>
               <Button
                 variant="secondary"
@@ -965,7 +966,7 @@ export function SnippetPage({
                   setDrawCard(null);
                 }}
               >
-                打开编辑
+                Open editor
               </Button>
             </>
           }
@@ -973,7 +974,7 @@ export function SnippetPage({
           <div className="draw-card-body">
             <p className="draw-card-en">{drawCard.text}</p>
             <p className="draw-card-zh">
-              {drawCard.translation || "（暂无中文译文）"}
+              {drawCard.translation || "(no translation yet)"}
             </p>
             {drawCard.categoryIds.length ? (
               <div className="snippet-categories draw-card-cats">

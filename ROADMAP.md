@@ -11,16 +11,21 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 - [x] Add tests, CI, security policy, contribution guide, and bilingual documentation.
 - [ ] Publish the first signed Windows installer and checksums.
 
-## 0.2 — Internationalization and portability
+## 0.2 — ComfyUI export and international usability
 
-- [ ] Move all user-facing strings into locale resources.
-- [ ] Ship complete English and Simplified Chinese locales with automatic locale detection and a manual override.
-- [ ] Document the locale contribution workflow and add localization completeness checks.
+- [x] Complete the English-first interface migration.
+- [x] Export checkpoint-based recipes as editable ComfyUI Workflow JSON 0.4 graphs.
+- [x] Preserve model, LoRA, prompt, and generation-parameter references in exported graphs.
 - [ ] Verify package and backup round trips across Windows machines.
 - [ ] Add structured workspace import/export.
+- [ ] Add a dedicated FLUX/diffusion-model ComfyUI graph template.
 
-## 0.3 — Community workflows
+## 0.3 — Localization and community workflows
 
+- [ ] Move user-facing strings into locale resources.
+- [ ] Ship a complete Simplified Chinese UI locale with automatic detection and a manual override.
+- [ ] Replace remaining low-level Rust diagnostics with stable error codes and localized frontend messages.
+- [ ] Document the locale contribution workflow and add localization completeness checks.
 - [ ] Add optional prompt-template variables and reusable parameter presets.
 - [ ] Add duplicate detection and merge assistance.
 - [ ] Add a documented plugin/importer boundary without exposing the local database directly.

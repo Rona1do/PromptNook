@@ -1,4 +1,4 @@
-export function readableError(error: unknown, fallback = "未知错误") {
+export function readableError(error: unknown, fallback = "Unknown error") {
   if (error instanceof Error && error.message.trim()) {
     return error.message.trim();
   }

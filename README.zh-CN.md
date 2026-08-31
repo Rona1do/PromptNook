@@ -6,7 +6,7 @@
 
 [English](README.md)
 
-> 最新版本：[PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview)。在可信 Windows 代码签名配置完成前，该版本只发布源码。
+> 最新版本：[PromptNook v0.2.0 Beta 1](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.0-beta.1)。在可信 Windows 代码签名配置完成前，该版本只发布源码。
 
 **[在线体验浏览器演示](https://rona1do.github.io/PromptNook/)** —— 使用临时示例数据浏览界面，不上传也不持久保存任何内容。
 
@@ -33,6 +33,7 @@ PromptNook 用来管理完整 Prompt、可复用片段、生成参数、模型/L
 - 可自定义任意模型或工作流名称，不再固定为少数预设模型；各工作区的数据相互隔离。
 - 管理完整 Prompt、单条片段、负面词、分类、标签、收藏、备注和修订历史。
 - 在创作台组合片段并记录生成参数。
+- 将基于 checkpoint 的完整配方导出为 ComfyUI Workflow JSON 0.4，自动连接模型、LoRA、Prompt 和生成参数。
 - 扫描本地 checkpoint、diffusion model 和 LoRA 文件夹，维护触发词与可用状态。
 - 翻译目标可填写 `en`、`zh-CN`、`ja`、`de` 等语言代码或语言名称；翻译默认关闭。
 - 支持完整性校验备份、回收站、JSON/CSV 导出和 `.promptnook` 迁移包。
@@ -40,7 +41,11 @@ PromptNook 用来管理完整 Prompt、可复用片段、生成参数、模型/L
 
 ## 语言策略
 
-仓库以英文作为协作语言，并保留中文说明。Prompt 内容和翻译目标本身不限制语言。首个公开预览版仍有部分来自私人原型的中文界面文字；下一里程碑会先把界面文案迁入标准的本地化资源，再提供完整英文界面，之后欢迎社区贡献其他语言。具体见 [ROADMAP.md](ROADMAP.md)。
+仓库和软件主要界面以英文为主，并保留完整中文说明。Prompt 内容和翻译目标本身不限制语言；v0.2 已迁移私人原型遗留的主要中文界面文案，少量底层 Rust 诊断信息仍列在后续本地化计划中。完整的简体中文 UI 仍需先迁入可审阅的本地化资源后再提供，不会在此之前笼统宣称“支持所有界面语言”。具体见 [ROADMAP.md](ROADMAP.md)。
+
+## ComfyUI 导出
+
+在 Windows 桌面版中打开已有配方，点击 **Export ComfyUI workflow**，即可选择位置并写出可编辑的 ComfyUI Workflow JSON 0.4 文件。当前版本使用 ComfyUI 核心节点，支持基于 checkpoint 的文生图配方；FLUX/diffusion model 需要不同的节点图模板，因此当前会明确提示不支持，而不是生成看似成功但无法正确运行的文件。兼容性和字段映射见 [docs/COMFYUI_EXPORT.md](docs/COMFYUI_EXPORT.md)。
 
 ## 当前平台
 

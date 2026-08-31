@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Clipboard,
   Copy,
+  Download,
   FileImage,
   Filter,
   FolderPlus,
@@ -33,6 +34,7 @@ import {
   X,
 } from "lucide-react";
 import clsx from "clsx";
+import { save as saveFile } from "@tauri-apps/plugin-dialog";
 import type {
   Asset,
   GenerationParams,
@@ -43,7 +45,7 @@ import type {
   RecipeTag,
   Resource,
 } from "../types";
-import { api } from "../lib/api";
+import { api, isDesktopRuntime } from "../lib/api";
 import { readableError } from "../lib/errors";
 import { deriveRecipeTitle } from "../lib/recipeTitle";
 import {
@@ -121,9 +123,9 @@ function resourceMatches(resource: Resource, query: string) {
 function formatUpdated(value: string) {
   const date = new Date(value);
   const delta = Date.now() - date.getTime();
-  if (delta < 60_000) return "刚刚";
-  if (delta < 3_600_000) return `${Math.max(1, Math.floor(delta / 60_000))} 分钟前`;
-  if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)} 小时前`;
+  if (delta < 60_000) return "Just now";
+  if (delta < 3_600_000) return `${Math.max(1, Math.floor(delta / 60_000))} minutes ago`;
+  if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)} hours ago`;
   return new Intl.DateTimeFormat("zh-CN", {
     month: "short",
     day: "numeric",
@@ -185,17 +187,17 @@ function RecipeVisual({
       )}
     >
       {cover && !privacyMode && cover.url ? (
-        <img src={cover.url} alt={`${displayTitle}示例图`} loading="lazy" />
+        <img src={cover.url} alt={`${displayTitle} preview image`} loading="lazy" />
       ) : (
         <div className="visual-placeholder">
           <span className="visual-orb visual-orb-a" />
           <span className="visual-orb visual-orb-b" />
           <Sparkles size={size === "hero" ? 32 : 23} />
-          <small>{privacyMode && cover ? "已隐藏" : "示例图"}</small>
+          <small>{privacyMode && cover ? "Hidden" : "Preview images"}</small>
         </div>
       )}
       {privacyMode ? (
-        <span className="private-label">隐私模式 · 不加载原图</span>
+        <span className="private-label">Privacy mode · Original images are not loaded</span>
       ) : null}
     </div>
   );
@@ -328,7 +330,7 @@ function RecipeCard({
         <RecipeVisual recipe={recipe} privacyMode={privacyMode} />
         <div className="recipe-card-actions">
           <IconButton
-            label={recipe.favorite ? "取消收藏" : "收藏"}
+            label={recipe.favorite ? "Remove favorite" : "Favorite"}
             className={recipe.favorite ? "is-favorite" : ""}
             onClick={onFavorite}
           >
@@ -336,7 +338,7 @@ function RecipeCard({
           </IconButton>
           <div className="more-menu">
             <IconButton
-              label="更多操作"
+              label="More actions"
               onClick={() => setMenuOpen((open) => !open)}
             >
               <MoreHorizontal size={18} />
@@ -344,7 +346,7 @@ function RecipeCard({
             {menuOpen ? (
               <div className="context-menu">
                 <button type="button" onClick={onOpen}>
-                  <SlidersHorizontal size={15} />编辑配方
+                  <SlidersHorizontal size={15} />Edit recipe
                 </button>
                 <button
                   type="button"
@@ -352,14 +354,14 @@ function RecipeCard({
                     void navigator.clipboard.writeText(recipe.positivePrompt)
                   }
                 >
-                  <Copy size={15} />复制 Prompt
+                  <Copy size={15} />Copy prompt
                 </button>
                 <button
                   type="button"
                   className="danger"
                   onClick={onDelete}
                 >
-                  <Trash2 size={15} />移入回收站
+                  <Trash2 size={15} />Move to Trash
                 </button>
               </div>
             ) : null}
@@ -367,9 +369,9 @@ function RecipeCard({
         </div>
         <span className={`status-pill status-${recipe.status}`}>
           {recipe.status === "reproducible" ? (
-            <><Check size={13} />可复现</>
+            <><Check size={13} />Reproducible</>
           ) : (
-            "草稿"
+            "Draft"
           )}
         </span>
         <div className="pose-pill-wrap" ref={poseRef}>
@@ -409,7 +411,7 @@ function RecipeCard({
               >
                 <header>
                   <strong>Recipe tags</strong>
-                  <span>多选 · 点选即保存</span>
+                  <span>Multiple selection · Click to save</span>
                 </header>
                 <div className="pose-pill-options">
                   {recipeTags.map((tag) => {
@@ -461,14 +463,14 @@ function RecipeCard({
           </div>
         ) : null}
         <div className="recipe-meta">
-          <span>{recipe.modelName || "未选择模型"}</span>
+          <span>{recipe.modelName || "No model selected"}</span>
           {recipe.loras.length ? (
             <span>+{recipe.loras.length} LoRA</span>
           ) : null}
           <span className="meta-spacer" />
           <span>{formatUpdated(recipe.updatedAt)}</span>
         </div>
-        <div className="rating-row" aria-label={`${recipe.rating} 星`}>
+        <div className="rating-row" aria-label={`${recipe.rating} stars`}>
           {Array.from({ length: 5 }, (_, index) => (
             <Star
               size={13}
@@ -491,7 +493,7 @@ async function fileToAsset(file: File): Promise<Asset> {
   });
   const dataBase64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
   return api.importAsset({
-    name: file.name || `粘贴图片-${Date.now()}.png`,
+    name: file.name || `pasted-image-${Date.now()}.png`,
     mimeType: file.type || "image/png",
     dataBase64,
   });
@@ -542,6 +544,7 @@ export function RecipeEditor({
   const [modelQuery, setModelQuery] = useState("");
   const [loraQuery, setLoraQuery] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [exportingComfyUi, setExportingComfyUi] = useState(false);
   /** Large in-editor status line (not a corner toast) so users always see progress. */
   const [statusLine, setStatusLine] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -572,13 +575,13 @@ export function RecipeEditor({
         return a.name.localeCompare(b.name);
       });
   }, [draft.loras, loraQuery, loras]);
-  // 尺寸/采样器/步数/CFG 允许全局统一、每条留空；可复现只要求有正向 Prompt。
+  // Size/sampler/steps/CFG may be global and left blank per recipe; reproducible recipes only require a positive prompt.
   const canReproduce = Boolean(draft.positivePrompt.trim());
 
   const setStatus = (status: RecipeStatus) => {
     if (status === "reproducible" && !canReproduce) {
       setTab("prompt");
-      const message = "填写正向 Prompt 后才能标记为可复现";
+      const message = "Add a positive prompt before marking this recipe reproducible";
       setSaveError(message);
       onToast(message);
       return;
@@ -591,7 +594,7 @@ export function RecipeEditor({
     async (files: File[]) => {
       const images = files.filter((file) => file.type.startsWith("image/"));
       if (!images.length) {
-        onToast("这里只接收图片文件");
+        onToast("Only image files are accepted");
         return;
       }
       try {
@@ -602,9 +605,9 @@ export function RecipeEditor({
           coverAssetId:
             current.coverAssetId ?? imported[0]?.id ?? current.coverAssetId,
         }));
-        onToast(`已加入 ${imported.length} 张示例图`);
+        onToast(`Added ${imported.length} preview images`);
       } catch {
-        onToast("图片导入失败，请重试");
+        onToast("Image import failed; try again");
       }
     },
     [onToast],
@@ -655,7 +658,7 @@ export function RecipeEditor({
     if (!source) return null;
     setTranslationError(null);
     setTranslating(true);
-    setStatusLine("正在翻译正向 Prompt…");
+    setStatusLine("Translating positive prompt…");
     try {
       const result = await api.translateText({
         text: source,
@@ -663,19 +666,19 @@ export function RecipeEditor({
       });
       const translated = (result.text ?? "").trim();
       if (!translated) {
-        throw new Error("翻译服务返回了空译文");
+        throw new Error("The translation service returned an empty result");
       }
       setDraft((current) => ({
         ...current,
         positiveTranslation: translated,
       }));
-      setStatusLine("翻译完成");
+      setStatusLine("Translation complete");
       return translated;
     } catch (error) {
-      const message = `翻译失败：${readableError(
+      const message = `Translation failed: ${readableError(
         error,
-        "服务暂时不可用",
-      )}；译文可留空或手工填写，不影响保存`;
+        "Service temporarily unavailable",
+      )}; leave the translation blank or enter one manually without affecting save`;
       setTranslationError({ field: "positive", message });
       setStatusLine(message);
       return null;
@@ -693,7 +696,7 @@ export function RecipeEditor({
     if (!source) return;
     setTranslationError(null);
     setTranslating(true);
-    setStatusLine("正在翻译负向 Prompt…");
+    setStatusLine("Translating negative prompt…");
     try {
       const result = await api.translateText({
         text: source,
@@ -703,12 +706,12 @@ export function RecipeEditor({
         ...current,
         negativeTranslation: result.text,
       }));
-      setStatusLine("负向 Prompt 翻译完成");
+      setStatusLine("Negative prompt translated");
     } catch (error) {
-      const message = `翻译失败：${readableError(
+      const message = `Translation failed: ${readableError(
         error,
-        "服务暂时不可用",
-      )}；译文可留空或手工填写，不影响保存`;
+        "Service temporarily unavailable",
+      )}; leave the translation blank or enter one manually without affecting save`;
       setTranslationError({ field, message });
       setStatusLine(message);
     } finally {
@@ -721,10 +724,10 @@ export function RecipeEditor({
     setDraft((current) => ({
       ...current,
       positivePrompt: next,
-      // 粘贴/导入后清空旧译文；总 Prompt 需手动点「自动翻译」。
+      // Clear the old translation after paste/import; recipes require an explicit Auto translate action.
       positiveTranslation: "",
     }));
-    setStatusLine("已导入 Prompt；需要中文时可点「自动翻译」");
+    setStatusLine("Prompt imported; use Auto translate when you need a translation");
   }
 
   function selectModel(modelId: string) {
@@ -743,7 +746,7 @@ export function RecipeEditor({
       draft.loras,
     );
     if (!detected.length) {
-      if (!silent) onToast("未在 Prompt 中识别到已知 LoRA 或触发词");
+      if (!silent) onToast("No known LoRA or trigger word was detected in the prompt");
       return 0;
     }
     setDraft((current) => ({
@@ -751,7 +754,7 @@ export function RecipeEditor({
       loras: mergeDetectedLoras(current.loras, detected),
     }));
     if (!silent) {
-      onToast(`已自动附加 ${detected.length} 个 LoRA`);
+      onToast(`Automatically attached ${detected.length} LoRAs`);
     }
     return detected.length;
   }
@@ -850,23 +853,23 @@ export function RecipeEditor({
     setSaveError("");
     setStatusLine("");
     if (draft.status === "reproducible" && !canReproduce) {
-      const message = "可复现配方至少需要正向 Prompt；可切换为“草稿”后保存";
+      const message = "A reproducible recipe needs a positive prompt; switch to Draft to save without one";
       setSaveError(message);
       setStatusLine(message);
       setTab("prompt");
       return;
     }
 
-    // 总 Prompt 不强制自动翻译，保存应立即返回。
+    // Recipes do not force auto translation; save should return immediately.
     setSaving(true);
-    setStatusLine("正在保存…");
+    setStatusLine("Saving…");
     try {
       await onSave(draft);
       saveLastGenerationParams(draft.params);
-      setStatusLine("已保存");
+      setStatusLine("Saved");
       onClose();
     } catch (error) {
-      const message = `保存失败：${readableError(error)}`;
+      const message = `Save failed: ${readableError(error)}`;
       setSaveError(message);
       setStatusLine(message);
     } finally {
@@ -874,9 +877,34 @@ export function RecipeEditor({
     }
   }
 
+  async function exportComfyUiWorkflow() {
+    if (!recipe) return;
+    setExportingComfyUi(true);
+    try {
+      const fileStem = deriveRecipeTitle(recipe.title, recipe.positivePrompt)
+        .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+        .replace(/[. ]+$/g, "")
+        .slice(0, 80) || "promptnook-recipe";
+      const targetPath = await saveFile({
+        defaultPath: `${fileStem}.comfyui.json`,
+        filters: [{ name: "ComfyUI Workflow JSON", extensions: ["json"] }],
+      });
+      if (!targetPath) return;
+      const result = await api.exportComfyUiWorkflow(recipe.id, targetPath);
+      const warning = result.warnings.length
+        ? ` ${result.warnings.join(" ")}`
+        : "";
+      onToast(`ComfyUI workflow exported to ${result.path}.${warning}`);
+    } catch (error) {
+      onToast(`ComfyUI export failed: ${readableError(error)}`);
+    } finally {
+      setExportingComfyUi(false);
+    }
+  }
+
   function applyRevision(snapshot: unknown) {
     if (!snapshot || typeof snapshot !== "object") {
-      onToast("这个历史版本无法读取");
+      onToast("This revision cannot be read");
       return;
     }
     const restored = snapshot as Partial<RecipeInput>;
@@ -884,7 +912,7 @@ export function RecipeEditor({
       typeof restored.title !== "string" ||
       typeof restored.positivePrompt !== "string"
     ) {
-      onToast("历史版本缺少必要的 Prompt 字段");
+      onToast("This revision is missing required prompt fields");
       return;
     }
     setDraft((current) => {
@@ -907,14 +935,14 @@ export function RecipeEditor({
       };
     });
     setHistoryOpen(false);
-    onToast("历史版本已载入；检查后点击保存才会生效");
+    onToast("Revision loaded. Review it and click Save to apply it");
   }
 
   return (
     <>
     <Modal
       size="xl"
-      eyebrow={recipe ? "编辑总 Prompt" : "新建总 Prompt"}
+      eyebrow={recipe ? "Edit recipe" : "New recipe"}
       title={deriveRecipeTitle(draft.title, draft.positivePrompt)}
       onClose={onClose}
       footer={
@@ -935,22 +963,34 @@ export function RecipeEditor({
               translationError.message
             ) : (
               <>
-                <kbd>Ctrl</kbd> + <kbd>Enter</kbd> 保存
-                （总 Prompt 需手动点「自动翻译」）
+                <kbd>Ctrl</kbd> + <kbd>Enter</kbd> Save
+                (use Auto translate manually for recipes)
               </>
             )}
           </div>
+          {recipe ? (
+            isDesktopRuntime() ? (
+              <Button
+                variant="ghost"
+                icon={<Download size={16} />}
+                disabled={exportingComfyUi}
+                onClick={() => void exportComfyUiWorkflow()}
+              >
+                {exportingComfyUi ? "Exporting…" : "Export ComfyUI workflow"}
+              </Button>
+            ) : null
+          ) : null}
           {recipe ? (
             <Button
               variant="ghost"
               icon={<History size={16} />}
               onClick={() => setHistoryOpen(true)}
             >
-              修改历史
+              Revision history
             </Button>
           ) : null}
           <Button variant="ghost" onClick={onClose} disabled={saving}>
-            取消
+            Cancel
           </Button>
           <Button
             type="button"
@@ -958,18 +998,18 @@ export function RecipeEditor({
             icon={<Check size={16} />}
             onClick={() => void save()}
           >
-            {saving ? "保存中…" : translating ? "翻译中…" : "保存"}
+            {saving ? "Saving…" : translating ? "Translating…" : "Save"}
           </Button>
         </>
       }
     >
       <div className="recipe-editor">
         <div className="editor-heading-row">
-          <Field label="标题（选填）" className="editor-title-field">
+          <Field label="Title (optional)" className="editor-title-field">
             <input
               autoFocus
               value={draft.title}
-              placeholder="留空将使用正向 Prompt 开头自动命名"
+              placeholder="Leave blank to derive a title from the positive prompt"
               onChange={(event) =>
                 setDraft((current) => ({
                   ...current,
@@ -984,14 +1024,14 @@ export function RecipeEditor({
               className={draft.status === "draft" ? "is-active" : ""}
               onClick={() => setStatus("draft")}
             >
-              草稿
+              Draft
             </button>
             <button
               type="button"
               className={draft.status === "reproducible" ? "is-active" : ""}
               onClick={() => setStatus("reproducible")}
             >
-              <Check size={14} />可复现
+              <Check size={14} />Reproducible
             </button>
           </div>
         </div>
@@ -1028,21 +1068,21 @@ export function RecipeEditor({
             type="button"
             onClick={() => setTab("prompt")}
           >
-            <WandSparkles size={16} />Prompt 内容
+            <WandSparkles size={16} />Prompt content
           </button>
           <button
             className={tab === "params" ? "is-active" : ""}
             type="button"
             onClick={() => setTab("params")}
           >
-            <SlidersHorizontal size={16} />模型与参数
+            <SlidersHorizontal size={16} />Models & parameters
           </button>
           <button
             className={tab === "images" ? "is-active" : ""}
             type="button"
             onClick={() => setTab("images")}
           >
-            <FileImage size={16} />示例图与备注
+            <FileImage size={16} />Images & notes
             {draft.assets.length ? <i>{draft.assets.length}</i> : null}
           </button>
         </nav>
@@ -1051,8 +1091,8 @@ export function RecipeEditor({
           <div className="editor-prompt-pane" onPaste={onPaste}>
             <div className="prompt-field-head">
               <div>
-                <strong>正向 Prompt</strong>
-                <span>英文原文是可无损复制的权威内容</span>
+                <strong>Positive prompt</strong>
+                <span>The source prompt is the authoritative, lossless copy</span>
               </div>
               <div className="prompt-field-head-actions">
                 <Button
@@ -1062,14 +1102,14 @@ export function RecipeEditor({
                   onClick={() =>
                     void navigator.clipboard.readText().then((text) => {
                       if (!text.trim()) {
-                        onToast("剪贴板里没有文本");
+                        onToast("The clipboard contains no text");
                         return;
                       }
                       importPositivePrompt(text);
                     })
                   }
                 >
-                  粘贴文本
+                  Paste text
                 </Button>
               </div>
             </div>
@@ -1087,27 +1127,27 @@ export function RecipeEditor({
               onPaste={(event) => {
                 const text = event.clipboardData.getData("text/plain");
                 if (!text.trim()) return;
-                // 粘贴视为整段导入；不自动翻译，避免长文卡住编辑器。
+                // Treat pasted text as a whole import and avoid automatic translation blocking the editor.
                 event.preventDefault();
                 importPositivePrompt(text);
               }}
             />
             <div className="translation-head">
-              <span><Languages size={15} />中文译文</span>
+              <span><Languages size={15} />Translation</span>
               <Button
                 size="sm"
                 variant="ghost"
                 disabled={translating || saving || !draft.positivePrompt.trim()}
                 onClick={() => void translate("positive")}
               >
-                {translating ? "翻译中…" : "自动翻译"}
+                {translating ? "Translating…" : "Auto translate"}
               </Button>
             </div>
             <textarea
               className="translation-textarea"
               rows={3}
               value={draft.positiveTranslation}
-              placeholder="可手工输入中文译文，便于理解和搜索"
+              placeholder="Enter a translation manually for understanding and search"
               onChange={(event) =>
                 setDraft((current) => ({
                   ...current,
@@ -1121,8 +1161,8 @@ export function RecipeEditor({
               </span>
             ) : null}
             <div className="preview-title">
-              <span>智能拆卡预览</span>
-              <small>仅在顶层分隔，不改动原文</small>
+              <span>Smart card preview</span>
+              <small>Splits only at the top level without changing the source</small>
             </div>
             <PromptChipEditor
               prompt={draft.positivePrompt}
@@ -1138,15 +1178,15 @@ export function RecipeEditor({
                 onSaveSnippet(
                   text,
                   translation,
-                  draft.title.trim() || "未命名总 Prompt",
+                  draft.title.trim() || "Untitled recipe",
                 )
               }
             />
 
             <div className="prompt-field-head negative-head">
               <div>
-                <strong>负向 Prompt</strong>
-                <span>不希望出现在画面中的内容</span>
+                <strong>Negative prompt</strong>
+                <span>Content to exclude from the image</span>
               </div>
               <Button
                 size="sm"
@@ -1155,7 +1195,7 @@ export function RecipeEditor({
                 disabled={translating || !draft.negativePrompt.trim()}
                 onClick={() => void translate("negative")}
               >
-                翻译
+                Translate
               </Button>
             </div>
             <textarea
@@ -1174,7 +1214,7 @@ export function RecipeEditor({
               className="translation-textarea"
               rows={2}
               value={draft.negativeTranslation}
-              placeholder="负向 Prompt 中文译文"
+              placeholder="Negative prompt translation"
               onChange={(event) =>
                 setDraft((current) => ({
                   ...current,
@@ -1195,19 +1235,19 @@ export function RecipeEditor({
             <section className="editor-section-card">
               <div className="section-heading">
                 <div>
-                  <h3>基础模型</h3>
-                  <p>保存模型快照，目录变化不会悄悄改坏旧配方。</p>
+                  <h3>Base model</h3>
+                  <p>Store a model snapshot so folder changes cannot silently break old recipes.</p>
                 </div>
                 <Badge tone={draft.modelId ? "success" : "neutral"}>
-                  {draft.modelId ? "已选择" : "可留空（推荐选常用模型）"}
+                  {draft.modelId ? "Selected" : "Optional (choose a frequently used model when possible)"}
                 </Badge>
               </div>
               <div className="resource-picker-search">
                 <Search size={16} aria-hidden="true" />
                 <input
                   value={modelQuery}
-                  placeholder="搜索模型名称、路径或底模"
-                  aria-label="搜索基础模型"
+                  placeholder="Search model name, path, or base model"
+                  aria-label="Search base models"
                   onChange={(event) => setModelQuery(event.target.value)}
                 />
                 <small>
@@ -1216,7 +1256,7 @@ export function RecipeEditor({
                 {modelQuery ? (
                   <button
                     type="button"
-                    aria-label="清空模型搜索"
+                    aria-label="Clear model search"
                     onClick={() => setModelQuery("")}
                   >
                     <X size={14} />
@@ -1228,25 +1268,25 @@ export function RecipeEditor({
                   value={draft.modelId || ""}
                   onChange={(event) => selectModel(event.target.value)}
                 >
-                  <option value="">暂不填写模型</option>
+                  <option value="">No model for now</option>
                   {filteredModels.map((model) => (
                     <option key={model.id} value={model.id}>
-                      {model.available ? "" : "[离线] "}
+                      {model.available ? "" : "[offline] "}
                       {model.name}
                     </option>
                   ))}
                 </Select>
               </Field>
               {modelQuery && filteredModels.length === 0 ? (
-                <div className="picker-empty">没有找到匹配的模型</div>
+                <div className="picker-empty">No matching model found</div>
               ) : null}
             </section>
 
             <section className="editor-section-card">
               <div className="section-heading">
                 <div>
-                  <h3>LoRA 堆栈</h3>
-                  <p>按照下方顺序加载，并独立保存模型与 CLIP 权重。</p>
+                  <h3>LoRA stack</h3>
+                  <p>Load in the order below and store model and CLIP weights independently.</p>
                 </div>
                 <div className="lora-picker-wrap">
                   <Button
@@ -1255,7 +1295,7 @@ export function RecipeEditor({
                     icon={<Sparkles size={15} />}
                     onClick={() => applyDetectedLoras(false)}
                   >
-                    从 Prompt 识别
+                    Detect from prompt
                   </Button>
                   <Button
                     size="sm"
@@ -1263,14 +1303,14 @@ export function RecipeEditor({
                     icon={<Plus size={15} />}
                     onClick={() => setLoraPicker((open) => !open)}
                   >
-                    添加 LoRA
+                    Add LoRA
                   </Button>
                 </div>
               </div>
               <p className="field-hint lora-detect-hint">
-                会根据 {"<lora:名称>"} 标签与<strong>角色触发词</strong>
-                （如 XiaoXunEr IL）自动附加；masterpiece / 3d
-                等泛用词不会关联。不会移除你手动添加的项。
+                Uses {"<lora:name>"} tags and <strong>character trigger words</strong>{" "}
+                (such as XiaoXunEr IL) to attach matches automatically; generic terms like masterpiece / 3d
+                are ignored. Manually added items are never removed.
               </p>
               {loraPicker ? (
                 <div
@@ -1285,11 +1325,11 @@ export function RecipeEditor({
                 >
                   <div className="lora-picker-head">
                     <div>
-                      <strong>选择 LoRA</strong>
-                      <small>可连续选择多个，已选项目会固定在最前面</small>
+                      <strong>Select LoRA</strong>
+                      <small>Select multiple items; selected LoRAs stay pinned at the top</small>
                     </div>
                     <IconButton
-                      label="关闭 LoRA 选择器"
+                      label="Close LoRA picker"
                       onClick={() => setLoraPicker(false)}
                     >
                       <X size={16} />
@@ -1300,8 +1340,8 @@ export function RecipeEditor({
                     <input
                       autoFocus
                       value={loraQuery}
-                      placeholder="搜索 LoRA、底模、路径或触发词"
-                      aria-label="搜索 LoRA"
+                      placeholder="Search LoRA, base model, path, or trigger word"
+                      aria-label="Search LoRAs"
                       onChange={(event) => setLoraQuery(event.target.value)}
                     />
                     <small>
@@ -1310,7 +1350,7 @@ export function RecipeEditor({
                     {loraQuery ? (
                       <button
                         type="button"
-                        aria-label="清空 LoRA 搜索"
+                        aria-label="Clear LoRA search"
                         onClick={() => setLoraQuery("")}
                       >
                         <X size={14} />
@@ -1333,8 +1373,8 @@ export function RecipeEditor({
                             <span>
                               <strong>{lora.name}</strong>
                               <small>
-                                {lora.available ? "" : "目录离线 · "}
-                                {lora.baseModel || "未知底模"}
+                                {lora.available ? "" : "Folder offline · "}
+                                {lora.baseModel || "Unknown base model"}
                               </small>
                             </span>
                             {selected ? <Check size={16} /> : <Plus size={16} />}
@@ -1344,7 +1384,7 @@ export function RecipeEditor({
                     </div>
                   ) : (
                     <div className="picker-empty">
-                      没有找到匹配的 LoRA，请换一个关键词
+                      No matching LoRA found; try another keyword
                     </div>
                   )}
                 </div>
@@ -1357,10 +1397,10 @@ export function RecipeEditor({
                       <div className="selected-lora-main">
                         <div className="selected-lora-title">
                           <strong>{lora.name}</strong>
-                          <small>加载顺序 {lora.order + 1}</small>
+                          <small>Load order {lora.order + 1}</small>
                         </div>
                         <div className="lora-weight-row">
-                          <Field label="模型权重">
+                          <Field label="Model weight">
                             <input
                               type="number"
                               min="0"
@@ -1374,7 +1414,7 @@ export function RecipeEditor({
                               }
                             />
                           </Field>
-                          <Field label="CLIP 权重">
+                          <Field label="CLIP weight">
                             <input
                               type="number"
                               min="0"
@@ -1390,7 +1430,7 @@ export function RecipeEditor({
                           </Field>
                         </div>
                         <div className="trigger-list">
-                          <span>触发词</span>
+                          <span>Trigger words</span>
                           {lora.triggerWords.length ? (
                             lora.triggerWords.map((trigger) => {
                               const active =
@@ -1410,12 +1450,12 @@ export function RecipeEditor({
                               );
                             })
                           ) : (
-                            <small>暂无触发词，可在“模型与 LoRA”中补充</small>
+                            <small>No trigger words yet; add them under Models & LoRAs</small>
                           )}
                         </div>
                       </div>
                       <IconButton
-                        label="移除此 LoRA"
+                        label="Remove this LoRA"
                         onClick={() => {
                           const resource = loras.find(
                             (item) => item.id === lora.resourceId,
@@ -1431,8 +1471,8 @@ export function RecipeEditor({
               ) : (
                 <EmptyState
                   icon={<Sparkles size={23} />}
-                  title="还没有添加 LoRA"
-                  description="这是可选项；添加后会一起保存权重与触发词快照。"
+                  title="No LoRAs added"
+                  description="Optional; weights and trigger-word snapshots are saved with the recipe."
                 />
               )}
             </section>
@@ -1440,11 +1480,11 @@ export function RecipeEditor({
             <section className="editor-section-card">
               <div className="section-heading">
                 <div>
-                  <h3>生成参数</h3>
+                  <h3>Generation parameters</h3>
                   <p>
-                    尺寸 / 采样器 / 步数 / CFG
-                    可全部留空（你全局同一套设置时不必每条都填）。可复现只要求有正向
-                    Prompt。
+                    Size / sampler / steps / CFG
+                    All fields are optional when you use the same global settings. Reproducible recipes only require a positive
+                    prompt.
                   </p>
                 </div>
                 <div className="parameter-heading-actions">
@@ -1458,7 +1498,7 @@ export function RecipeEditor({
                       }))
                     }
                   >
-                    全部留空
+                    Clear all
                   </Button>
                   <Button
                     size="sm"
@@ -1470,18 +1510,18 @@ export function RecipeEditor({
                       }))
                     }
                   >
-                    使用推荐值
+                    Use recommended values
                   </Button>
                 </div>
               </div>
               <div className="parameter-grid">
-                <Field label="宽度">
+                <Field label="Width">
                   <input
                     type="number"
                     min="64"
                     step="64"
                     value={draft.params.width ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "width",
@@ -1492,13 +1532,13 @@ export function RecipeEditor({
                     }
                   />
                 </Field>
-                <Field label="高度">
+                <Field label="Height">
                   <input
                     type="number"
                     min="64"
                     step="64"
                     value={draft.params.height ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "height",
@@ -1509,7 +1549,7 @@ export function RecipeEditor({
                     }
                   />
                 </Field>
-                <Field label="采样器">
+                <Field label="Sampler">
                   <Select
                     value={draft.params.sampler ?? ""}
                     onChange={(event) =>
@@ -1519,7 +1559,7 @@ export function RecipeEditor({
                       )
                     }
                   >
-                    <option value="">不填写</option>
+                    <option value="">Not set</option>
                     {draft.params.sampler &&
                     !(SAMPLERS as readonly string[]).includes(
                       draft.params.sampler,
@@ -1535,7 +1575,7 @@ export function RecipeEditor({
                     ))}
                   </Select>
                 </Field>
-                <Field label="调度器">
+                <Field label="Scheduler">
                   <Select
                     value={draft.params.scheduler ?? ""}
                     onChange={(event) =>
@@ -1545,7 +1585,7 @@ export function RecipeEditor({
                       )
                     }
                   >
-                    <option value="">不填写</option>
+                    <option value="">Not set</option>
                     {draft.params.scheduler &&
                     !(SCHEDULERS as readonly string[]).includes(
                       draft.params.scheduler,
@@ -1561,13 +1601,13 @@ export function RecipeEditor({
                     ))}
                   </Select>
                 </Field>
-                <Field label="步数">
+                <Field label="Steps">
                   <input
                     type="number"
                     min="1"
                     max="200"
                     value={draft.params.steps ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "steps",
@@ -1585,7 +1625,7 @@ export function RecipeEditor({
                     max="30"
                     step="0.1"
                     value={draft.params.cfg ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "cfg",
@@ -1599,7 +1639,7 @@ export function RecipeEditor({
                 <Field label="Seed" className="seed-field">
                   <input
                     value={draft.params.seed ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "seed",
@@ -1607,7 +1647,7 @@ export function RecipeEditor({
                       )
                     }
                   />
-                  <small>留空表示未记录；-1 代表每次随机</small>
+                  <small>Blank means unrecorded; -1 generates a random seed each time</small>
                 </Field>
               </div>
             </section>
@@ -1632,11 +1672,11 @@ export function RecipeEditor({
             >
               <span className="drop-icon"><ImagePlus size={23} /></span>
               <div>
-                <strong>拖入图片，或点击选择</strong>
-                <span>也可以在这个窗口任意位置按 Ctrl + V 直接粘贴</span>
+                <strong>Drop images here or click to choose</strong>
+                <span>You can also press Ctrl+V anywhere in this window</span>
               </div>
               <Button variant="secondary" size="sm" type="button">
-                选择图片
+                Choose images
               </Button>
               <input
                 ref={fileRef}
@@ -1661,8 +1701,8 @@ export function RecipeEditor({
                   >
                     <div className={privacyMode ? "is-private" : ""}>
                       {privacyMode || !asset.url ? (
-                        <div className="asset-privacy-placeholder" aria-label="隐私模式已隐藏示例图">
-                          已隐藏
+                        <div className="asset-privacy-placeholder" aria-label="Preview images are hidden by Privacy mode">
+                          Hidden
                         </div>
                       ) : (
                         <img src={asset.url} alt={asset.name} loading="lazy" />
@@ -1679,13 +1719,13 @@ export function RecipeEditor({
                         }
                       >
                         {draft.coverAssetId === asset.id ? (
-                          <><Check size={13} />封面</>
+                          <><Check size={13} />Cover</>
                         ) : (
-                          "设为封面"
+                          "Set as cover"
                         )}
                       </button>
                       <IconButton
-                        label="移除图片"
+                        label="Remove image"
                         onClick={() =>
                           setDraft((current) => ({
                             ...current,
@@ -1710,15 +1750,15 @@ export function RecipeEditor({
             ) : (
               <EmptyState
                 icon={<FileImage size={23} />}
-                title="还没有示例图"
-                description="示例图会显著提高以后找到和理解 Prompt 的速度。"
+                title="No preview images yet"
+                description="Preview images make recipes much easier to find and understand later."
               />
             )}
-            <Field label="经验备注" hint="只有你自己能看到">
+            <Field label="Notes" hint="Visible only to you">
               <textarea
                 rows={5}
                 value={draft.notes}
-                placeholder="记录权重变化、容易踩坑的地方、适合的出图场景…"
+                placeholder="Record weight changes, pitfalls, and suitable generation scenarios…"
                 onChange={(event) =>
                   setDraft((current) => ({
                     ...current,
@@ -1727,12 +1767,12 @@ export function RecipeEditor({
                 }
               />
             </Field>
-            <Field label="个人评分">
+            <Field label="Personal rating">
               <div className="rating-picker">
                 {Array.from({ length: 5 }, (_, index) => (
                   <button
                     type="button"
-                    aria-label={`${index + 1} 星`}
+                    aria-label={`${index + 1} stars`}
                     key={index}
                     onClick={() =>
                       setDraft((current) => ({
@@ -1862,9 +1902,9 @@ export function RecipePage({
     <div className="page recipes-page">
       <header className="page-header">
         <div>
-          <span className="eyebrow">灵感与成品</span>
-          <h1>总 Prompt</h1>
-          <p>保存完整配方，带着模型、LoRA 与参数一起回来。</p>
+          <span className="eyebrow">Ideas & results</span>
+          <h1>Recipes</h1>
+          <p>Save the complete recipe with its model, LoRAs, and parameters.</p>
         </div>
         <div className="page-actions">
           <Button
@@ -1872,35 +1912,35 @@ export function RecipePage({
             icon={<WandSparkles size={16} />}
             onClick={onOpenStudio}
           >
-            去创作台组合
+            Compose in Studio
           </Button>
           <Button
             icon={<Plus size={17} />}
             onClick={() => setEditing("new")}
           >
-            新建总 Prompt
+            New recipe
           </Button>
         </div>
       </header>
 
       <section className="toolbar">
-        <div className="segmented-filter" aria-label="总 Prompt 筛选">
+        <div className="segmented-filter" aria-label="Recipe filters">
           {(
             [
-              ["all", "全部", recipes.length],
+              ["all", "All", recipes.length],
               [
                 "favorite",
-                "收藏",
+                "Favorite",
                 recipes.filter((item) => item.favorite).length,
               ],
               [
                 "reproducible",
-                "可复现",
+                "Reproducible",
                 recipes.filter((item) => item.status === "reproducible").length,
               ],
               [
                 "draft",
-                "草稿",
+                "Draft",
                 recipes.filter((item) => item.status === "draft").length,
               ],
             ] as const
@@ -1920,7 +1960,7 @@ export function RecipePage({
           <Search size={16} />
           <input
             value={query}
-            placeholder="筛选当前列表"
+            placeholder="Filter this list"
             onChange={(event) => setQuery(event.target.value)}
           />
           {query ? (
@@ -1951,9 +1991,9 @@ export function RecipePage({
             setSort(event.target.value as "updated" | "rating" | "usage")
           }
         >
-          <option value="updated">最近修改</option>
-          <option value="rating">评分最高</option>
-          <option value="usage">最常使用</option>
+          <option value="updated">Recently updated</option>
+          <option value="rating">Highest rated</option>
+          <option value="usage">Most used</option>
         </Select>
       </section>
 
@@ -1969,7 +2009,7 @@ export function RecipePage({
               onFavorite={() =>
                 void onSave({ ...recipe, favorite: !recipe.favorite }).catch(
                   (error) =>
-                    onToast(`收藏状态保存失败：${readableError(error)}`),
+                    onToast(`Could not save favorite status: ${readableError(error)}`),
                 )
               }
               onDelete={() => void onDelete(recipe)}
@@ -1983,18 +2023,18 @@ export function RecipePage({
             onClick={() => setEditing("new")}
           >
             <span><FolderPlus size={23} /></span>
-            <strong>保存新的灵感</strong>
-            <small>从一句 Prompt 开始也可以</small>
+            <strong>Save a new idea</strong>
+            <small>A single prompt is enough to begin</small>
           </button>
         </div>
       ) : (
         <EmptyState
           icon={<Search size={24} />}
-          title="没有找到符合条件的 Prompt"
-          description="调整筛选或搜索词，也可以直接新建一个。"
+          title="No matching recipes"
+          description="Adjust the filters or search, or create a new recipe."
           action={
             <Button icon={<Plus size={16} />} onClick={() => setEditing("new")}>
-              新建总 Prompt
+              New recipe
             </Button>
           }
         />

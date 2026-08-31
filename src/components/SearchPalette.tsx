@@ -18,10 +18,10 @@ const resultIcons = {
 };
 
 const resultLabels = {
-  recipe: "总 Prompt",
-  snippet: "单 Prompt",
-  resource: "模型与 LoRA",
-  tip: "技巧",
+  recipe: "Recipes",
+  snippet: "Snippets",
+  resource: "Models & LoRAs",
+  tip: "Tips",
 };
 
 export function SearchPalette({
@@ -51,9 +51,9 @@ export function SearchPalette({
   }, [results]);
 
   const emptyMessage = useMemo(() => {
-    if (!query.trim()) return "搜索 Prompt、中文译文、模型、LoRA 与技巧";
-    if (loading) return "正在搜索…";
-    return "没有匹配结果，换个关键词试试";
+    if (!query.trim()) return "Search prompts, translations, models, LoRAs, and tips";
+    if (loading) return "Searching…";
+    return "No matches; try another keyword";
   }, [loading, query]);
 
   return (
@@ -62,7 +62,7 @@ export function SearchPalette({
         className="search-palette"
         role="dialog"
         aria-modal="true"
-        aria-label="全局搜索"
+        aria-label="Global search"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="palette-input">
@@ -70,7 +70,7 @@ export function SearchPalette({
           <input
             ref={inputRef}
             value={query}
-            placeholder="搜索中文、英文、分类或模型…"
+            placeholder="Search prompts, translations, categories, or models…"
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") onClose();
@@ -90,7 +90,7 @@ export function SearchPalette({
             }}
           />
           <span className="keyboard-key">ESC</span>
-          <IconButton label="关闭搜索" onClick={onClose}>
+          <IconButton label="Close search" onClick={onClose}>
             <X size={18} />
           </IconButton>
         </div>
@@ -128,12 +128,12 @@ export function SearchPalette({
         </div>
         <footer className="palette-footer">
           <span>
-            <kbd>↑</kbd><kbd>↓</kbd> 选择
+            <kbd>↑</kbd><kbd>↓</kbd> Select
           </span>
           <span>
-            <kbd>Enter</kbd> 打开
+            <kbd>Enter</kbd> Open
           </span>
-          <span>支持中英文混合搜索</span>
+          <span>Search source text and translations together</span>
         </footer>
       </section>
     </div>

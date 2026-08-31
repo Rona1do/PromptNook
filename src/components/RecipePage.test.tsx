@@ -83,7 +83,7 @@ function renderEditor(
 }
 
 function openParameters() {
-  fireEvent.click(screen.getByRole("button", { name: /模型与参数/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Models & parameters/ }));
 }
 
 describe("RecipeEditor save and resource selection", () => {
@@ -102,10 +102,10 @@ describe("RecipeEditor save and resource selection", () => {
     const onClose = vi.fn();
     renderEditor({ onSave, onClose });
 
-    fireEvent.change(screen.getByLabelText("标题（选填）"), {
+    fireEvent.change(screen.getByLabelText("Title (optional)"), {
       target: { value: "只有标题的灵感草稿" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
     expect(onSave.mock.calls[0][0]).toMatchObject({
@@ -132,7 +132,7 @@ describe("RecipeEditor save and resource selection", () => {
     fireEvent.change(screen.getByPlaceholderText("masterpiece, best quality, a portrait of…"), {
       target: { value: "cinematic portrait, golden hour" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
     expect(onSave.mock.calls[0][0]).toMatchObject({
@@ -144,25 +144,25 @@ describe("RecipeEditor save and resource selection", () => {
 
   it("keeps the editor open and shows the backend error when saving fails", async () => {
     const onSave = vi.fn(async () => {
-      throw new Error("数据库暂时不可写");
+      throw new Error("database is temporarily read-only");
     });
     const onClose = vi.fn();
     renderEditor({ onSave, onClose });
 
-    fireEvent.change(screen.getByLabelText("标题（选填）"), {
+    fireEvent.change(screen.getByLabelText("Title (optional)"), {
       target: { value: "失败反馈测试" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(
       await screen.findByRole("alert"),
-    ).toHaveTextContent("保存失败：数据库暂时不可写");
+    ).toHaveTextContent("Save failed: database is temporarily read-only");
     expect(onClose).not.toHaveBeenCalled();
   });
 
   it("stops translating and keeps the provider error visible", async () => {
     vi.spyOn(api, "translateText").mockRejectedValueOnce(
-      new Error("Google 返回 HTTP 401：API 密钥无效"),
+      new Error("Google returned HTTP 401: invalid API key"),
     );
     renderEditor();
 
@@ -172,13 +172,13 @@ describe("RecipeEditor save and resource selection", () => {
       ),
       { target: { value: "cinematic portrait" } },
     );
-    fireEvent.click(screen.getByRole("button", { name: "自动翻译" }));
+    fireEvent.click(screen.getByRole("button", { name: "Auto translate" }));
 
     expect(
-      await screen.findAllByText(/Google 返回 HTTP 401：API 密钥无效/),
+      await screen.findAllByText(/Google returned HTTP 401: invalid API key/),
     ).not.toHaveLength(0);
     expect(
-      screen.getByRole("button", { name: "自动翻译" }),
+      screen.getByRole("button", { name: "Auto translate" }),
     ).toBeEnabled();
   });
 
@@ -187,7 +187,7 @@ describe("RecipeEditor save and resource selection", () => {
     openParameters();
 
     fireEvent.change(
-      screen.getByRole("textbox", { name: "搜索基础模型" }),
+      screen.getByRole("textbox", { name: "Search base models" }),
       { target: { value: "flux.1" } },
     );
     const modelSelect = screen.getByLabelText("Checkpoint / Diffusion model");
@@ -196,12 +196,12 @@ describe("RecipeEditor save and resource selection", () => {
       within(modelSelect).queryByRole("option", { name: "SDXL Base" }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "添加 LoRA" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add LoRA" }));
     const picker = document.querySelector(".lora-picker");
     expect(picker).not.toBeNull();
     expect(picker).toHaveClass("lora-picker");
 
-    fireEvent.change(screen.getByRole("textbox", { name: "搜索 LoRA" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Search LoRAs" }), {
       target: { value: "V-SIGN" },
     });
     expect(
@@ -217,7 +217,7 @@ describe("RecipeEditor save and resource selection", () => {
   it("lists dpmpp_2m_sde among sampler options", () => {
     renderEditor();
     openParameters();
-    const sampler = screen.getByLabelText("采样器");
+    const sampler = screen.getByLabelText("Sampler");
     expect(
       within(sampler).getByRole("option", { name: "dpmpp_2m_sde" }),
     ).toBeInTheDocument();
@@ -227,31 +227,31 @@ describe("RecipeEditor save and resource selection", () => {
     const onSave = vi.fn(async (_recipe: RecipeInput) => undefined);
     const first = renderEditor({ onSave });
     openParameters();
-    fireEvent.change(screen.getByLabelText("宽度"), {
+    fireEvent.change(screen.getByLabelText("Width"), {
       target: { value: "832" },
     });
-    fireEvent.change(screen.getByLabelText("高度"), {
+    fireEvent.change(screen.getByLabelText("Height"), {
       target: { value: "1216" },
     });
-    fireEvent.change(screen.getByLabelText("采样器"), {
+    fireEvent.change(screen.getByLabelText("Sampler"), {
       target: { value: "dpmpp_2m_sde" },
     });
-    fireEvent.change(screen.getByLabelText("步数"), {
+    fireEvent.change(screen.getByLabelText("Steps"), {
       target: { value: "30" },
     });
     fireEvent.change(screen.getByLabelText("CFG"), {
       target: { value: "4.5" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
     first.unmount();
 
     renderEditor({ onSave: vi.fn(async () => undefined) });
     openParameters();
-    expect(screen.getByLabelText("宽度")).toHaveValue(832);
-    expect(screen.getByLabelText("高度")).toHaveValue(1216);
-    expect(screen.getByLabelText("采样器")).toHaveValue("dpmpp_2m_sde");
-    expect(screen.getByLabelText("步数")).toHaveValue(30);
+    expect(screen.getByLabelText("Width")).toHaveValue(832);
+    expect(screen.getByLabelText("Height")).toHaveValue(1216);
+    expect(screen.getByLabelText("Sampler")).toHaveValue("dpmpp_2m_sde");
+    expect(screen.getByLabelText("Steps")).toHaveValue(30);
     expect(screen.getByLabelText("CFG")).toHaveValue(4.5);
   });
 
@@ -259,17 +259,17 @@ describe("RecipeEditor save and resource selection", () => {
     renderEditor();
     openParameters();
 
-    expect(screen.getByLabelText("宽度")).toHaveValue(null);
-    expect(screen.getByLabelText("采样器")).toHaveValue("");
+    expect(screen.getByLabelText("Width")).toHaveValue(null);
+    expect(screen.getByLabelText("Sampler")).toHaveValue("");
 
-    fireEvent.click(screen.getByRole("button", { name: "使用推荐值" }));
-    expect(screen.getByLabelText("宽度")).toHaveValue(1024);
-    expect(screen.getByLabelText("采样器")).toHaveValue("euler");
+    fireEvent.click(screen.getByRole("button", { name: "Use recommended values" }));
+    expect(screen.getByLabelText("Width")).toHaveValue(1024);
+    expect(screen.getByLabelText("Sampler")).toHaveValue("euler");
     expect(screen.getByLabelText("CFG")).toHaveValue(3.5);
 
-    fireEvent.click(screen.getByRole("button", { name: "全部留空" }));
-    expect(screen.getByLabelText("宽度")).toHaveValue(null);
-    expect(screen.getByLabelText("采样器")).toHaveValue("");
+    fireEvent.click(screen.getByRole("button", { name: "Clear all" }));
+    expect(screen.getByLabelText("Width")).toHaveValue(null);
+    expect(screen.getByLabelText("Sampler")).toHaveValue("");
     expect(screen.getByLabelText(/^Seed/)).toHaveValue("");
   });
 });

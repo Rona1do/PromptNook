@@ -370,7 +370,7 @@ export function StudioPage({
       return true;
     });
     if (!unique.length) {
-      onToast("这个词条已经在画布中");
+      onToast("This snippet is already on the canvas");
       return;
     }
     setItems((current) => [...current, ...unique]);
@@ -398,8 +398,8 @@ export function StudioPage({
       ),
     );
     setGenerationParams({ ...recipe.params });
-    setRecipeTitle(`${displayTitle} · 新版本`);
-    onToast(`已载入“${displayTitle}”作为创作底稿`);
+    setRecipeTitle(`${displayTitle} · New version`);
+    onToast(`Loaded “${displayTitle}” as a Studio draft`);
   }
 
   function dropItem(targetId: string) {
@@ -442,7 +442,7 @@ export function StudioPage({
       const weighted = updateSegmentWeight(parsed.segments, 0, weight);
       updateItem(item.id, { text: joinPromptSegments(weighted) });
     } catch {
-      onToast("权重格式无效");
+      onToast("Invalid weight format");
     }
   }
 
@@ -535,7 +535,7 @@ export function StudioPage({
         snippet.categoryIds.some((id) => inspirationCategories.includes(id)),
     );
     if (!pool.length) {
-      onToast("所选分类还没有可用词条");
+      onToast("The selected categories have no available snippets");
       return;
     }
     const keep = items.filter(
@@ -568,13 +568,13 @@ export function StudioPage({
     }
     setItems([...keep, ...picked]);
     usedSnippetIds.forEach((id) => void onSnippetUsed(id));
-    onToast(`已换入 ${picked.length} 个新灵感，固定项保持不变`);
+    onToast(`Drew ${picked.length} new ideas; pinned items stayed in place`);
   }
 
   async function saveRecipe() {
     setSaveError("");
     if (!output.trim()) {
-      const message = "画布还是空的";
+      const message = "The canvas is empty";
       setSaveError(message);
       onToast(message);
       return;
@@ -612,7 +612,7 @@ export function StudioPage({
         ),
         params: { ...generationParams },
         assets: [],
-        notes: "由创作台组合生成",
+        notes: "Composed in Studio",
         favorite: false,
         tagIds: [],
         rating: 0,
@@ -622,7 +622,7 @@ export function StudioPage({
       setSavePanelOpen(false);
       setRecipeTitle("");
     } catch (error) {
-      const message = `保存失败：${readableError(error)}`;
+      const message = `Save failed: ${readableError(error)}`;
       setSaveError(message);
       onToast(message);
     } finally {
@@ -634,9 +634,9 @@ export function StudioPage({
     <div className="page studio-page">
       <header className="page-header studio-header">
         <div>
-          <span className="eyebrow">从收藏到新作品</span>
-          <h1>创作台</h1>
-          <p>把已有灵感拖进画布，选择模型和 LoRA，随时复制完整 Prompt。</p>
+          <span className="eyebrow">From saved ideas to a new work</span>
+          <h1>Studio</h1>
+          <p>Drag ideas onto the canvas, select a model and LoRAs, then copy the complete prompt.</p>
         </div>
         <div className="page-actions">
           <div className="inspiration-wrap">
@@ -645,15 +645,15 @@ export function StudioPage({
               icon={<Dice5 size={17} />}
               onClick={() => setInspirationOpen((open) => !open)}
             >
-              灵感模式
+              Inspiration mode
               <ChevronDown size={14} />
             </Button>
             {inspirationOpen ? (
               <div className="inspiration-popover">
                 <header>
-                  <span><Sparkles size={16} />从哪些分类抽取？</span>
+                  <span><Sparkles size={16} />Draw from which categories?</span>
                   <IconButton
-                    label="关闭"
+                    label="Close"
                     onClick={() => setInspirationOpen(false)}
                   >
                     <X size={15} />
@@ -683,13 +683,13 @@ export function StudioPage({
                   })}
                 </div>
                 <p>
-                  每次混合抽取 3 个常用、收藏或长期少用词条；锁定内容不会被替换。
+                  Draw three frequently used, favorite, or long-unused snippets; pinned items stay in place.
                 </p>
                 <Button
                   icon={<Dice5 size={16} />}
                   onClick={rerollInspiration}
                 >
-                  抽取新灵感
+                  Draw new inspiration
                 </Button>
               </div>
             ) : null}
@@ -701,15 +701,15 @@ export function StudioPage({
               setSavePanelOpen((open) => !open);
             }}
           >
-            保存为总 Prompt
+            Save as recipe
           </Button>
           {savePanelOpen ? (
             <div className="studio-save-panel">
-              <Field label="配方标题（选填）">
+              <Field label="Recipe title (optional)">
                 <input
                   autoFocus
                   value={recipeTitle}
-                  placeholder="留空将使用 Prompt 开头自动命名"
+                  placeholder="Leave blank to derive a title from the prompt"
                   onChange={(event) => setRecipeTitle(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void saveRecipe();
@@ -717,10 +717,10 @@ export function StudioPage({
                 />
               </Field>
               <p className="studio-save-status">
-                将保存为
-                <strong>{canSaveReproducible ? "可复现配方" : "草稿"}</strong>
+                Save as
+                <strong>{canSaveReproducible ? "Reproducible recipe" : "Draft"}</strong>
                 {!canSaveReproducible
-                  ? "（模型或必要生成参数未填写完整）"
+                  ? "(model or generation parameters are incomplete)"
                   : ""}
               </p>
               {saveError ? (
@@ -734,14 +734,14 @@ export function StudioPage({
                   variant="ghost"
                   onClick={() => setSavePanelOpen(false)}
                 >
-                  取消
+                  Cancel
                 </Button>
                 <Button
                   size="sm"
                   disabled={saving}
                   onClick={() => void saveRecipe()}
                 >
-                  {saving ? "保存中…" : "确认保存"}
+                  {saving ? "Saving…" : "Save recipe"}
                 </Button>
               </div>
             </div>
@@ -754,7 +754,7 @@ export function StudioPage({
           <div className="studio-panel-head">
             <div>
               <span className="panel-index">01</span>
-              <strong>灵感库</strong>
+              <strong>Idea library</strong>
             </div>
           </div>
           <div className="library-tabs">
@@ -763,14 +763,14 @@ export function StudioPage({
               className={libraryMode === "snippets" ? "is-active" : ""}
               onClick={() => setLibraryMode("snippets")}
             >
-              单 Prompt
+              Snippets
             </button>
             <button
               type="button"
               className={libraryMode === "recipes" ? "is-active" : ""}
               onClick={() => setLibraryMode("recipes")}
             >
-              总 Prompt 底稿
+              Recipe drafts
             </button>
           </div>
           {libraryMode === "snippets" ? (
@@ -779,7 +779,7 @@ export function StudioPage({
                 <Search size={15} />
                 <input
                   value={libraryQuery}
-                  placeholder="搜索词条"
+                  placeholder="Search snippets"
                   onChange={(event) => setLibraryQuery(event.target.value)}
                 />
               </label>
@@ -789,7 +789,7 @@ export function StudioPage({
                   className={libraryCategory === "all" ? "is-active" : ""}
                   onClick={() => setLibraryCategory("all")}
                 >
-                  全部
+                  All
                 </button>
                 {categories.map((category) => (
                   <button
@@ -807,13 +807,13 @@ export function StudioPage({
                   <article key={snippet.id}>
                     <div>
                       <strong>{snippet.text}</strong>
-                      <span>{snippet.translation || "待翻译"}</span>
+                      <span>{snippet.translation || "Pending translation"}</span>
                     </div>
                     {snippet.favorite ? (
                       <Star size={13} fill="currentColor" />
                     ) : null}
                     <IconButton
-                      label="加入画布"
+                      label="Add to canvas"
                       onClick={() => addSnippet(snippet)}
                     >
                       <Plus size={16} />
@@ -839,7 +839,7 @@ export function StudioPage({
                         recipe.updatedAt,
                       )}
                     </strong>
-                    <small>{recipe.modelName || "草稿"}</small>
+                    <small>{recipe.modelName || "Draft"}</small>
                   </span>
                   <ChevronDown size={15} />
                 </button>
@@ -852,8 +852,8 @@ export function StudioPage({
           <div className="studio-panel-head">
             <div>
               <span className="panel-index">02</span>
-              <strong>Prompt 画布</strong>
-              <Badge tone="neutral">{items.length} 个片段</Badge>
+              <strong>Prompt canvas</strong>
+              <Badge tone="neutral">{items.length} snippets</Badge>
             </div>
             <Button
               size="sm"
@@ -861,7 +861,7 @@ export function StudioPage({
               icon={<RefreshCw size={14} />}
               onClick={rerollInspiration}
             >
-              只重抽未固定项
+              Redraw unpinned items
             </Button>
           </div>
 
@@ -889,17 +889,17 @@ export function StudioPage({
                     </span>
                     <div
                       className="canvas-order-controls"
-                      aria-label={`调整第 ${index + 1} 个片段顺序`}
+                      aria-label={`Reorder snippet ${index + 1}`}
                     >
                       <IconButton
-                        label="向上移动片段"
+                        label="Move snippet up"
                         disabled={index === 0}
                         onClick={() => moveItem(item.id, -1)}
                       >
                         <ArrowUp size={13} />
                       </IconButton>
                       <IconButton
-                        label="向下移动片段"
+                        label="Move snippet down"
                         disabled={index === items.length - 1}
                         onClick={() => moveItem(item.id, 1)}
                       >
@@ -916,7 +916,7 @@ export function StudioPage({
                       <input
                         className="canvas-translation"
                         value={item.translation}
-                        placeholder="添加中文译文"
+                        placeholder="Add translation"
                         onChange={(event) =>
                           updateItem(item.id, {
                             translation: event.target.value,
@@ -924,14 +924,14 @@ export function StudioPage({
                         }
                       />
                       <div className="canvas-source">
-                        <span>{item.source === "prefix" ? "固定前置" : item.source === "inspiration" ? "灵感抽取" : "词条库"}</span>
+                        <span>{item.source === "prefix" ? "Pinned prefix" : item.source === "inspiration" ? "Inspiration draw" : "Snippet library"}</span>
                         {item.categoryIds.slice(0, 2).map((id) => (
                           <small key={id}>{categories.find((cat) => cat.id === id)?.name}</small>
                         ))}
                       </div>
                     </div>
                     <label className="weight-control">
-                      <span>权重</span>
+                      <span>Weight</span>
                       <input
                         type="number"
                         min="0"
@@ -943,14 +943,14 @@ export function StudioPage({
                       />
                     </label>
                     <IconButton
-                      label={item.locked ? "取消固定" : "固定此项"}
+                      label={item.locked ? "Unpin" : "Pin this item"}
                       className={item.locked ? "is-active" : ""}
                       onClick={() => updateItem(item.id, { locked: !item.locked })}
                     >
                       {item.locked ? <Lock size={16} /> : <LockOpen size={16} />}
                     </IconButton>
                     <IconButton
-                      label="删除"
+                      label="Delete"
                       onClick={() =>
                         setItems((current) =>
                           current.filter((candidate) => candidate.id !== item.id),
@@ -966,16 +966,16 @@ export function StudioPage({
           ) : (
             <EmptyState
               icon={<Layers3 size={24} />}
-              title="画布是空的"
-              description="从左侧加入词条，或者用灵感模式抽取一个组合。"
+              title="The canvas is empty"
+              description="Add snippets from the left or draw a combination in Inspiration mode."
             />
           )}
 
           <section className="studio-output">
             <header>
               <div>
-                <strong>实时输出</strong>
-                <span>已自动去除重复词条和触发词</span>
+                <strong>Live output</strong>
+                <span>Duplicate snippets and trigger words removed automatically</span>
               </div>
               <Button
                 size="sm"
@@ -985,15 +985,15 @@ export function StudioPage({
                 onClick={() =>
                   void navigator.clipboard
                     .writeText(output)
-                    .then(() => onToast("完整 Prompt 已复制"))
+                    .then(() => onToast("Complete prompt copied"))
                 }
               >
-                复制
+                Copy
               </Button>
             </header>
-            <p>{output || "从左侧添加词条后，这里会生成可直接出图的 Prompt。"}</p>
+            <p>{output || "Add snippets from the left to build a generation-ready prompt here."}</p>
             {outputTranslation ? <small>{outputTranslation}</small> : null}
-            <Field label="负向 Prompt">
+            <Field label="Negative prompt">
               <textarea
                 rows={2}
                 value={negativePrompt}
@@ -1007,17 +1007,17 @@ export function StudioPage({
           <div className="studio-panel-head">
             <div>
               <span className="panel-index">03</span>
-              <strong>模型与提示</strong>
+              <strong>Models & guidance</strong>
             </div>
           </div>
           <section className="context-section">
-            <h3>基础模型</h3>
+            <h3>Base model</h3>
             <div className="resource-picker-search studio-resource-search">
               <Search size={15} aria-hidden="true" />
               <input
                 value={modelQuery}
-                placeholder="搜索模型"
-                aria-label="在创作台搜索模型"
+                placeholder="Search models"
+                aria-label="Search models in Studio"
                 onChange={(event) => setModelQuery(event.target.value)}
               />
               <small>
@@ -1026,7 +1026,7 @@ export function StudioPage({
               {modelQuery ? (
                 <button
                   type="button"
-                  aria-label="清空模型搜索"
+                  aria-label="Clear model search"
                   onClick={() => setModelQuery("")}
                 >
                   <X size={13} />
@@ -1037,32 +1037,32 @@ export function StudioPage({
               value={selectedModelId}
               onChange={(event) => setSelectedModelId(event.target.value)}
             >
-              <option value="">暂不选择</option>
+              <option value="">No selection</option>
               {filteredModels.map((model) => (
                 <option value={model.id} key={model.id}>
-                  {model.available ? "" : "[离线] "}
+                  {model.available ? "" : "[offline] "}
                   {model.name}
                 </option>
               ))}
             </Select>
             {modelQuery && filteredModels.length === 0 ? (
-              <div className="picker-empty">没有找到匹配的模型</div>
+              <div className="picker-empty">No matching model found</div>
             ) : null}
             {selectedModel && !selectedModel.available ? (
               <div className="compat-warning">
                 <AlertTriangle size={15} />
-                模型目录当前离线，仍可继续编辑和保存。
+                The model folder is offline; you can still edit and save.
               </div>
             ) : null}
           </section>
 
           <section className="context-section">
               <div className="context-title">
-                <h3>生成参数</h3>
+                <h3>Generation parameters</h3>
                 <span>
                   {generationParams.width || generationParams.height
                     ? `${generationParams.width ?? "—"} × ${generationParams.height ?? "—"}`
-                    : "参数未填写"}
+                    : "Parameters not set"}
                 </span>
               </div>
               <div className="compact-parameter-actions">
@@ -1073,7 +1073,7 @@ export function StudioPage({
                     setGenerationParams({ ...EMPTY_GENERATION_PARAMS })
                   }
                 >
-                  清空
+                  Clear
                 </Button>
                 <Button
                   size="sm"
@@ -1082,17 +1082,17 @@ export function StudioPage({
                     setGenerationParams({ ...RECOMMENDED_GENERATION_PARAMS })
                   }
                 >
-                  推荐值
+                  Recommended values
                 </Button>
               </div>
               <div className="generation-params-grid">
-                <Field label="宽度">
+                <Field label="Width">
                 <input
                   type="number"
                   min="64"
                   step="64"
                   value={generationParams.width ?? ""}
-                  placeholder="不填写"
+                  placeholder="Not set"
                   onChange={(event) => {
                     updateGenerationParam(
                       "width",
@@ -1103,13 +1103,13 @@ export function StudioPage({
                   }}
                 />
               </Field>
-              <Field label="高度">
+              <Field label="Height">
                 <input
                   type="number"
                   min="64"
                   step="64"
                   value={generationParams.height ?? ""}
-                  placeholder="不填写"
+                  placeholder="Not set"
                   onChange={(event) => {
                     updateGenerationParam(
                       "height",
@@ -1120,7 +1120,7 @@ export function StudioPage({
                   }}
                 />
               </Field>
-              <Field label="采样器">
+              <Field label="Sampler">
                 <Select
                   value={generationParams.sampler ?? ""}
                   onChange={(event) =>
@@ -1130,7 +1130,7 @@ export function StudioPage({
                     )
                   }
                 >
-                  <option value="">不填写</option>
+                  <option value="">Not set</option>
                   {generationParams.sampler &&
                   !SAMPLERS.includes(generationParams.sampler) ? (
                     <option value={generationParams.sampler}>
@@ -1144,7 +1144,7 @@ export function StudioPage({
                   ))}
                 </Select>
               </Field>
-              <Field label="调度器">
+              <Field label="Scheduler">
                 <Select
                   value={generationParams.scheduler ?? ""}
                   onChange={(event) =>
@@ -1154,7 +1154,7 @@ export function StudioPage({
                     )
                   }
                 >
-                  <option value="">不填写</option>
+                  <option value="">Not set</option>
                   {generationParams.scheduler &&
                   !SCHEDULERS.includes(generationParams.scheduler) ? (
                     <option value={generationParams.scheduler}>
@@ -1168,13 +1168,13 @@ export function StudioPage({
                   ))}
                 </Select>
               </Field>
-              <Field label="步数">
+              <Field label="Steps">
                 <input
                   type="number"
                   min="1"
                   max="200"
                   value={generationParams.steps ?? ""}
-                  placeholder="不填写"
+                  placeholder="Not set"
                   onChange={(event) => {
                     updateGenerationParam(
                       "steps",
@@ -1192,7 +1192,7 @@ export function StudioPage({
                   max="100"
                   step="0.1"
                   value={generationParams.cfg ?? ""}
-                  placeholder="不填写"
+                  placeholder="Not set"
                   onChange={(event) => {
                     updateGenerationParam(
                       "cfg",
@@ -1207,7 +1207,7 @@ export function StudioPage({
                   <input
                     inputMode="numeric"
                     value={generationParams.seed ?? ""}
-                    placeholder="不填写"
+                    placeholder="Not set"
                     onChange={(event) =>
                       updateGenerationParam(
                         "seed",
@@ -1222,14 +1222,14 @@ export function StudioPage({
           <section className="context-section">
             <div className="context-title">
               <h3>LoRA</h3>
-              <span>{selectedLoras.length} 已启用</span>
+              <span>{selectedLoras.length} Enabled</span>
             </div>
             <div className="resource-picker-search studio-resource-search">
               <Search size={15} aria-hidden="true" />
               <input
                 value={loraQuery}
-                placeholder="搜索 LoRA 或触发词"
-                aria-label="在创作台搜索 LoRA"
+                placeholder="Search LoRA or trigger word"
+                aria-label="Search LoRAs in Studio"
                 onChange={(event) => setLoraQuery(event.target.value)}
               />
               <small>
@@ -1238,7 +1238,7 @@ export function StudioPage({
               {loraQuery ? (
                 <button
                   type="button"
-                  aria-label="清空 LoRA 搜索"
+                  aria-label="Clear LoRA search"
                   onClick={() => setLoraQuery("")}
                 >
                   <X size={13} />
@@ -1278,28 +1278,28 @@ export function StudioPage({
                       <span><Sparkles size={15} /></span>
                       <div>
                         <strong>{lora.name}</strong>
-                        <small>{lora.baseModel || "底模未知"}</small>
+                        <small>{lora.baseModel || "Unknown base model"}</small>
                       </div>
                       {selected ? <Check size={16} /> : <Plus size={16} />}
                     </button>
                     {!compatible ? (
                       <div className="compat-warning compact">
-                        <AlertTriangle size={13} />可能与所选底模不兼容
+                        <AlertTriangle size={13} />May be incompatible with the selected base model
                       </div>
                     ) : null}
                     {selected ? (
                       <div className="studio-lora-controls">
                         <div className="lora-order-controls">
-                          <span>加载顺序 {selectedIndex + 1}</span>
+                          <span>Load order {selectedIndex + 1}</span>
                           <IconButton
-                            label={`上移 ${lora.name}`}
+                            label={`Move ${lora.name} up`}
                             disabled={selectedIndex === 0}
                             onClick={() => moveLora(lora.id, -1)}
                           >
                             <ArrowUp size={13} />
                           </IconButton>
                           <IconButton
-                            label={`下移 ${lora.name}`}
+                            label={`Move ${lora.name} down`}
                             disabled={selectedIndex === selectedLoras.length - 1}
                             onClick={() => moveLora(lora.id, 1)}
                           >
@@ -1307,7 +1307,7 @@ export function StudioPage({
                           </IconButton>
                         </div>
                         <div className="lora-strength-grid">
-                          <Field label="模型权重">
+                          <Field label="Model weight">
                             <input
                               type="number"
                               min="-5"
@@ -1328,7 +1328,7 @@ export function StudioPage({
                               }}
                             />
                           </Field>
-                          <Field label="CLIP 权重">
+                          <Field label="CLIP weight">
                             <input
                               type="number"
                               min="-5"
@@ -1382,14 +1382,14 @@ export function StudioPage({
               </div>
             ) : (
               <div className="picker-empty">
-                没有找到匹配的 LoRA，请更换关键词
+                No matching LoRA found; try another keyword
               </div>
             )}
           </section>
 
           <section className="context-section context-tips">
             <div className="context-title">
-              <h3><Lightbulb size={16} />相关技巧</h3>
+              <h3><Lightbulb size={16} />Relevant tips</h3>
               <span>{contextualTips.length}</span>
             </div>
             {contextualTips.length ? (
@@ -1399,21 +1399,21 @@ export function StudioPage({
                   <p>{tip.content}</p>
                   <span>
                     {tip.scope === "global"
-                      ? "通用"
-                      : tip.targetName || "当前上下文"}
+                      ? "General"
+                      : tip.targetName || "Current context"}
                   </span>
                 </article>
               ))
             ) : (
-              <p className="context-empty">选择模型或 LoRA 后显示相关经验。</p>
+              <p className="context-empty">Select a model or LoRA to show relevant tips.</p>
             )}
           </section>
 
           <div className="studio-pro-tip">
             <WandSparkles size={17} />
             <p>
-              <strong>小提示</strong>
-              固定满意的片段，再重抽其它项，通常比一次随机全部更容易找到方向。
+              <strong>Tip</strong>
+              Pin the snippets you like, then redraw the rest to explore more deliberately.
             </p>
           </div>
         </aside>

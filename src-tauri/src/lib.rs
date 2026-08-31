@@ -1,4 +1,5 @@
 mod backup;
+mod comfyui;
 mod db;
 mod export;
 mod models;
@@ -77,6 +78,7 @@ pub fn run() {
             backup::list_backups,
             backup::restore_backup,
             backup::import_promptvault,
+            comfyui::export_comfyui_workflow,
             export::export_data,
         ])
         .build(tauri::generate_context!())
