@@ -9,7 +9,7 @@
   [![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB.svg)](https://tauri.app/)
 </div>
 
-> Latest release: [PromptNook v0.1.0 Preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.1.0-preview). It is source-only while trusted Windows code signing is being arranged.
+> Latest release: [PromptNook v0.2.0 Beta 1](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.0-beta.1). It is source-only while trusted Windows code signing is being arranged.
 
 **[Try the browser demo](https://rona1do.github.io/PromptNook/)** — explore the interface with temporary sample data; nothing is uploaded or persisted.
 
@@ -38,6 +38,7 @@ Prompt workflows quickly outgrow text files: reusable fragments become hard to f
 - **Custom workspaces** — create any model or workflow name instead of choosing from a fixed list. Each workspace has isolated recipes, snippets, tags, and Studio defaults.
 - **Recipes and snippets** — organize full prompts, reusable fragments, negative prompts, notes, favorites, categories, and revision history.
 - **Prompt Studio** — assemble prompts from reusable fragments and preserve the parameters behind a generation.
+- **ComfyUI workflow export** — turn a checkpoint-based recipe into an editable Workflow JSON 0.4 graph with model, ordered LoRAs, prompts, and generation parameters already connected.
 - **Local model catalog** — scan configured checkpoint, diffusion-model, and LoRA folders; record trigger words and availability.
 - **Language-flexible content** — set any translation target such as `en`, `zh-CN`, `ja`, `de`, or a language name. Translation is off by default.
 - **Local-first storage** — desktop data lives in a local SQLite database. There is no PromptNook account, telemetry, or mandatory network service.
@@ -46,9 +47,13 @@ Prompt workflows quickly outgrow text files: reusable fragments become hard to f
 
 ## Project language policy
 
-English is the repository language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic.
+English is the repository and interface language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic: users can enter any target supported by their configured translation provider.
 
-The first public preview still contains some Simplified Chinese interface copy inherited from the original private prototype. Converting all UI copy to locale files and adding an English locale is the first tracked milestone; see [ROADMAP.md](ROADMAP.md). Contributions for additional locales are welcome after that foundation lands.
+The original private prototype's primary Chinese-only interface has been migrated for v0.2. A resource-based Simplified Chinese UI locale and localized low-level diagnostics remain on the roadmap; the project will not claim generic “all-language UI” support before each locale is complete and reviewable.
+
+## ComfyUI export
+
+Open an existing recipe in the Windows desktop app and choose **Export ComfyUI workflow**. PromptNook writes an editable ComfyUI Workflow JSON 0.4 file and reports any offline or unresolved model references. The current graph uses ComfyUI core nodes and supports checkpoint-based text-to-image recipes; FLUX/diffusion-model graphs are deliberately deferred to a dedicated template. See [the export design and compatibility notes](docs/COMFYUI_EXPORT.md).
 
 ## Platform status
 

@@ -11,6 +11,10 @@
 7. Generate SHA-256 checksums for release assets and verify the Authenticode signature.
 8. Create a signed tag when signing is configured, then draft a GitHub release from the changelog.
 
+## Source-only prereleases
+
+Until trusted Windows signing is approved, maintainers may publish a clearly labelled GitHub prerelease containing GitHub's generated source archives only. Do not attach an unsigned installer or portable executable. The release notes must state that no official binary is available, link to the browser demo, include local build instructions, and list known compatibility boundaries.
+
 ## Release notes
 
 Call out database migrations, backup compatibility, new network behavior, platform support, and known limitations. Never claim macOS or Linux support based only on compilation.
