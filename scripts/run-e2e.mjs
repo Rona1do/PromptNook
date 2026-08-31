@@ -44,7 +44,7 @@ async function waitForServer(timeoutMs = 30_000) {
   while (Date.now() < deadline) {
     if (viteExit) {
       throw new Error(
-        `Vite 在测试启动前退出（code=${viteExit.code}, signal=${viteExit.signal}）`,
+        `Vite exited before the test started (code=${viteExit.code}, signal=${viteExit.signal})`,
       );
     }
     try {
@@ -55,7 +55,7 @@ async function waitForServer(timeoutMs = 30_000) {
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`等待 Vite 超时：${baseURL}`);
+  throw new Error(`Timed out waiting for Vite: ${baseURL}`);
 }
 
 async function stopVite() {
@@ -103,7 +103,7 @@ try {
     playwright.once("error", reject);
     playwright.once("exit", (code, signal) => {
       if (signal) {
-        reject(new Error(`Playwright 被信号 ${signal} 终止`));
+        reject(new Error(`Playwright was terminated by signal ${signal}`));
       } else {
         resolve(code ?? 1);
       }

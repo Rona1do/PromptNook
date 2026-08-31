@@ -16,6 +16,6 @@ describe("deriveRecipeTitle", () => {
   it("uses a dated unnamed title when both title and Prompt are blank", () => {
     expect(
       deriveRecipeTitle("", "", "2026-07-28T05:30:00.000Z"),
-    ).toBe("未命名 Prompt · 2026-07-28");
+    ).toBe("Untitled recipe · 2026-07-28");
   });
 });

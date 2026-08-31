@@ -34,5 +34,5 @@ export function deriveRecipeTitle(
   const normalized = firstPromptPart.replace(/\s+/g, " ").trim();
   if (normalized) return shorten(normalized);
 
-  return `未命名 Prompt · ${datePart(timestamp)}`;
+  return `Untitled recipe · ${datePart(timestamp)}`;
 }

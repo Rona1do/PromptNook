@@ -44,7 +44,7 @@ describe("PromptChipEditor", () => {
     const onSaveSnippet = vi.fn(async () => true);
     render(<ControlledEditor onSaveSnippet={onSaveSnippet} />);
 
-    const initialEnglish = screen.getAllByLabelText(/第 \d+ 项英文原文/);
+    const initialEnglish = screen.getAllByLabelText(/Source prompt for item \d+/);
     expect(initialEnglish).toHaveLength(5);
     expect(initialEnglish.map((input) => (input as HTMLInputElement).value)).toEqual([
       "alpha beta",
@@ -60,9 +60,9 @@ describe("PromptChipEditor", () => {
       joinPromptSegments(parsePrompt(originalPrompt).segments),
     ).toBe(originalPrompt);
 
-    fireEvent.click(screen.getByRole("button", { name: "再次拆分第 1 项" }));
+    fireEvent.click(screen.getByRole("button", { name: "Split item 1 again" }));
     const splitInput = screen.getByRole("textbox", {
-      name: "输入带顶层分隔符的片段",
+      name: "Enter text with top-level separators",
     });
     fireEvent.change(splitInput, { target: { value: "alpha, beta" } });
     fireEvent.keyDown(splitInput, {
@@ -71,23 +71,23 @@ describe("PromptChipEditor", () => {
       ctrlKey: true,
     });
 
-    expect(screen.getAllByLabelText(/第 \d+ 项英文原文/)).toHaveLength(6);
+    expect(screen.getAllByLabelText(/Source prompt for item \d+/)).toHaveLength(6);
     expect(screen.getByTestId("authoritative-prompt").textContent).toBe(
       'alpha, beta, (red, dress:1.2), escaped\\,comma; "quoted, phrase"\n<lora:style,variant:0.8>',
     );
 
-    fireEvent.change(screen.getByRole("textbox", { name: "第 2 项英文原文" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Source prompt for item 2" }), {
       target: { value: "masterpiece" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "上移第 2 项" }));
+    fireEvent.click(screen.getByRole("button", { name: "Move item 2 up" }));
     expect(screen.getByTestId("authoritative-prompt").textContent).toBe(
       'masterpiece, alpha, (red, dress:1.2), escaped\\,comma; "quoted, phrase"\n<lora:style,variant:0.8>',
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: "合并第 1 项与下一项" }),
+      screen.getByRole("button", { name: "Merge item 1 with the next item" }),
     );
-    fireEvent.change(screen.getByRole("spinbutton", { name: "第 1 项权重" }), {
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Weight for item 1" }), {
       target: { value: "1.35" },
     });
 
@@ -101,7 +101,7 @@ describe("PromptChipEditor", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "将第 1 项保存为单 Prompt",
+        name: "Save item 1 as a snippet",
       }),
     );
     await waitFor(() =>

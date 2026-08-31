@@ -1006,6 +1006,10 @@ select:focus {
   box-shadow: 0 1px 4px rgba(17, 25, 54, 0.1);
 }
 
+.segmented-filter button i {
+  margin-left: 4px;
+}
+
 .compact-segmented button {
   min-height: 26px;
   padding-inline: 8px;
@@ -3109,6 +3113,12 @@ select:focus {
   border: 1px solid #daddf6;
   border-radius: 11px;
   background: #f7f7ff;
+}
+
+.studio-output header > div,
+.offline-notice > div {
+  display: grid;
+  gap: 2px;
 }
 
 .studio-output textarea {

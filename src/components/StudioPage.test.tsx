@@ -42,9 +42,9 @@ it("saves from the studio without requiring a recipe title", async () => {
     />,
   );
 
-  fireEvent.click(screen.getByRole("button", { name: "保存为总 Prompt" }));
-  expect(screen.getByLabelText("配方标题（选填）")).toHaveValue("");
-  fireEvent.click(screen.getByRole("button", { name: "确认保存" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save as recipe" }));
+  expect(screen.getByLabelText("Recipe title (optional)")).toHaveValue("");
+  fireEvent.click(screen.getByRole("button", { name: "Save recipe" }));
 
   await waitFor(() => expect(onSaveRecipe).toHaveBeenCalledTimes(1));
   expect(onSaveRecipe.mock.calls[0][0]).toMatchObject({

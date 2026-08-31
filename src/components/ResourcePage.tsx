@@ -52,24 +52,24 @@ function matchesResourceQuery(resource: Resource, query: string) {
 }
 
 function formatBytes(value?: number) {
-  if (!value) return "大小未知";
+  if (!value) return "Unknown size";
   const gb = value / 1024 / 1024 / 1024;
   if (gb >= 1) return `${gb.toFixed(1)} GB`;
   return `${Math.round(value / 1024 / 1024)} MB`;
 }
 
 function formatRelativeTime(iso?: string) {
-  if (!iso) return "时间未知";
+  if (!iso) return "Unknown time";
   const time = new Date(iso).getTime();
-  if (Number.isNaN(time)) return "时间未知";
+  if (Number.isNaN(time)) return "Unknown time";
   const diffMs = Date.now() - time;
-  if (diffMs < 60_000) return "刚刚";
+  if (diffMs < 60_000) return "Just now";
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 60) return `${minutes} 分钟前`;
+  if (minutes < 60) return `${minutes} minutes ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 48) return `${hours} 小时前`;
+  if (hours < 48) return `${hours} hours ago`;
   const days = Math.floor(hours / 24);
-  if (days < 14) return `${days} 天前`;
+  if (days < 14) return `${days} days ago`;
   return new Date(iso).toLocaleString();
 }
 
@@ -102,7 +102,7 @@ function ResourceVisual({
       {resource.previewUrl && !privacyMode ? (
         <img
           src={resource.previewUrl}
-          alt={`${resource.name} 预览`}
+          alt={`${resource.name} preview`}
           loading="lazy"
         />
       ) : (
@@ -114,7 +114,7 @@ function ResourceVisual({
           )}
           <span>
             {privacyMode && resource.previewUrl
-              ? "已隐藏"
+              ? "Hidden"
               : resource.resourceType === "lora"
                 ? "LoRA"
                 : "MODEL"}
@@ -122,7 +122,7 @@ function ResourceVisual({
         </div>
       )}
       {!resource.available ? (
-        <span className="offline-overlay"><CircleOff size={16} />目录离线</span>
+        <span className="offline-overlay"><CircleOff size={16} />Folder offline</span>
       ) : null}
     </div>
   );
@@ -169,7 +169,7 @@ function ResourceEditor({
           candidate.toLocaleLowerCase() === next.toLocaleLowerCase(),
       )
     ) {
-      onToast("这个触发词已经存在");
+      onToast("This trigger word already exists");
       return;
     }
     setDraft((current) => ({
@@ -215,7 +215,7 @@ function ResourceEditor({
       await onSave(draft);
       onClose();
     } catch (error) {
-      const message = `保存失败：${readableError(error)}`;
+      const message = `Save failed: ${readableError(error)}`;
       setSaveError(message);
       onToast(message);
     } finally {
@@ -235,13 +235,13 @@ function ResourceEditor({
               {saveError}
             </span>
           ) : null}
-          <Button variant="ghost" onClick={onClose}>取消</Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button
             icon={<Check size={16} />}
             disabled={saving}
             onClick={() => void save()}
           >
-            {saving ? "保存中…" : "保存信息"}
+            {saving ? "Saving…" : "Save details"}
           </Button>
         </>
       }
@@ -250,15 +250,15 @@ function ResourceEditor({
         <div className="resource-editor-hero">
           <ResourceVisual resource={draft} privacyMode={privacyMode} />
           <div>
-            <strong>示例图</strong>
-            <p>用于快速识别模型，不会写入或修改原模型目录。</p>
+            <strong>Preview images</strong>
+            <p>Helps identify the model quickly and never writes to the model folder.</p>
             <Button
               size="sm"
               variant="secondary"
               icon={<ImagePlus size={15} />}
               onClick={() => fileRef.current?.click()}
             >
-              {draft.previewUrl ? "更换示例图" : "添加示例图"}
+              {draft.previewUrl ? "Replace preview image" : "Add preview image"}
             </Button>
             <input
               ref={fileRef}
@@ -270,27 +270,27 @@ function ResourceEditor({
           </div>
         </div>
         <div className="resource-facts">
-          <div><span>底模</span><strong>{draft.baseModel || "尚未识别"}</strong></div>
-          <div><span>文件大小</span><strong>{formatBytes(draft.fileSize)}</strong></div>
+          <div><span>Base model</span><strong>{draft.baseModel || "Not detected"}</strong></div>
+          <div><span>File size</span><strong>{formatBytes(draft.fileSize)}</strong></div>
           <div>
-            <span>状态</span>
+            <span>Status</span>
             <strong className={draft.available ? "online" : "offline"}>
-              {draft.available ? "目录在线" : "保留的离线记录"}
+              {draft.available ? "Folder online" : "Retained offline record"}
             </strong>
           </div>
         </div>
-        <Field label="文件路径">
+        <Field label="File path">
           <div className="read-only-path">{draft.path}</div>
         </Field>
         {draft.resourceType === "lora" ? (
           <>
             <div className="section-heading">
               <div>
-                <h3>触发词</h3>
-                <p>点击候选词确认；创作台默认只启用已确认的触发词。</p>
+                <h3>Trigger words</h3>
+                <p>Confirm suggested words with a click. Studio only enables confirmed trigger words by default.</p>
               </div>
               <Badge tone="accent">
-                {draft.confirmedTriggerWords.length} 已确认
+                {draft.confirmedTriggerWords.length} Confirmed
               </Badge>
             </div>
             <div className="trigger-editor">
@@ -312,7 +312,7 @@ function ResourceEditor({
             <div className="add-trigger-row">
               <input
                 value={word}
-                placeholder="手工输入新的触发词"
+                placeholder="Enter a new trigger word"
                 onChange={(event) => setWord(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") addWord();
@@ -325,16 +325,16 @@ function ResourceEditor({
                 disabled={!word.trim()}
                 onClick={addWord}
               >
-                添加
+                Add
               </Button>
             </div>
           </>
         ) : null}
-        <Field label="个人备注">
+        <Field label="Personal notes">
           <textarea
             rows={3}
             value={draft.notes || ""}
-            placeholder="推荐设置、适合画风、兼容性说明…"
+            placeholder="Recommended settings, suitable styles, compatibility notes…"
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -388,7 +388,7 @@ function DownloadLoraImportModal({
         );
       } catch (loadError) {
         if (!cancelled) {
-          setError(`读取下载目录失败：${readableError(loadError)}`);
+          setError(`Could not read Downloads: ${readableError(loadError)}`);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -442,7 +442,7 @@ function DownloadLoraImportModal({
 
   async function confirmImport() {
     if (!selectedCandidates.length) {
-      onToast("请先勾选要导入的 LoRA");
+      onToast("Select the LoRAs to import");
       return;
     }
     setImporting(true);
@@ -458,10 +458,10 @@ function DownloadLoraImportModal({
       const parts: string[] = [];
       if (importedNames.length) {
         parts.push(
-          `已移动导入 ${importedNames.length} 个 LoRA：${importedNames.join("、")}`,
+          `Moved ${importedNames.length} LoRAs: ${importedNames.join(", ")}`,
         );
       } else {
-        parts.push("没有新的 LoRA 被移动导入");
+        parts.push("No new LoRAs were moved");
       }
       if (result.skipped.length) {
         parts.push(result.skipped.join("；"));
@@ -473,7 +473,7 @@ function DownloadLoraImportModal({
       if (!result.failed.length) onClose();
       else setError(result.failed.join("\n"));
     } catch (importError) {
-      const message = `导入失败：${readableError(importError)}`;
+      const message = `Import failed: ${readableError(importError)}`;
       setError(message);
       onToast(message);
     } finally {
@@ -483,8 +483,8 @@ function DownloadLoraImportModal({
 
   return (
     <Modal
-      title="从下载目录导入 LoRA"
-      eyebrow="一键归档"
+      title="Import LoRAs from Downloads"
+      eyebrow="Quick archive"
       size="lg"
       onClose={onClose}
       footer={
@@ -492,17 +492,17 @@ function DownloadLoraImportModal({
           <div className="import-lora-footer-summary">
             {selectedCandidates.length ? (
               <>
-                <strong>将导入 {selectedCandidates.length} 个：</strong>
-                <span title={selectedCandidates.map((item) => item.name).join("、")}>
-                  {selectedCandidates.map((item) => item.name).join("、")}
+                <strong>Will import {selectedCandidates.length} items:</strong>
+                <span title={selectedCandidates.map((item) => item.name).join(", ")}>
+                  {selectedCandidates.map((item) => item.name).join(", ")}
                 </span>
               </>
             ) : (
-              <span>尚未选择任何 LoRA</span>
+              <span>No LoRAs selected</span>
             )}
           </div>
           <Button variant="secondary" onClick={onClose} disabled={importing}>
-            取消
+            Cancel
           </Button>
           <Button
             icon={<Download size={16} />}
@@ -510,8 +510,8 @@ function DownloadLoraImportModal({
             onClick={() => void confirmImport()}
           >
             {importing
-              ? "正在导入…"
-              : `确认导入 ${selectedCandidates.length || ""}`.trim()}
+              ? "Importing…"
+              : `Import ${selectedCandidates.length || ""} selected`.trim()}
           </Button>
         </>
       }
@@ -519,48 +519,48 @@ function DownloadLoraImportModal({
       <div className="import-lora-modal">
         <div className="import-lora-paths">
           <div>
-            <small>来源（近期下载）</small>
+            <small>Source (recent downloads)</small>
             <strong>
               {listing?.downloadsPath || "Downloads"}
             </strong>
           </div>
           <div>
-            <small>目标 LoRA 目录</small>
+            <small>Destination LoRA folder</small>
             <strong>{listing?.loraPath || settings.loraPath}</strong>
           </div>
         </div>
 
         <p className="import-lora-hint">
-          仅展示最近 {listing?.recentDays ?? 14} 天、体积不超过 2GB
-          的权重文件。默认勾选<strong>
-            近 {listing?.defaultSelectHours ?? 6} 小时
-          </strong>
-          的新文件。导入为<strong>移动</strong>
-          （原下载文件会删除）。请核对下方具体名称后再确认。
+          Show only weight files from the last {listing?.recentDays ?? 14} days
+          that are under 2 GB. Select by default <strong>
+            the last {listing?.defaultSelectHours ?? 6} hours
+          </strong>{" "}
+          of new files. Import mode: <strong>move</strong>{" "}
+          (the original downloaded files are removed). Review the exact names below before confirming.
         </p>
 
         {loading ? (
-          <div className="import-lora-status">正在扫描下载目录…</div>
+          <div className="import-lora-status">Scanning Downloads…</div>
         ) : error && !listing ? (
           <div className="import-lora-status is-error">{error}</div>
         ) : listing && listing.candidates.length === 0 ? (
           <div className="import-lora-status">
-            最近 {listing.recentDays} 天内没有发现可导入的 LoRA 文件。
+            Recent {listing.recentDays} days contain no importable LoRA files.
           </div>
         ) : listing ? (
           <>
             <div className="import-lora-toolbar">
               <Badge tone="accent">
-                近期 {listing.candidates.length} 个候选
+                Recent {listing.candidates.length} candidates
               </Badge>
               <button type="button" onClick={selectDefaultWindow}>
-                全选近 {listing.defaultSelectHours} 小时
+                Select recent {listing.defaultSelectHours} hours
               </button>
               <button type="button" onClick={selectAllNew}>
-                全选可导入项
+                Select all importable
               </button>
               <button type="button" onClick={() => setSelected(new Set())}>
-                清空选择
+                Clear selection
               </button>
               <label className="import-lora-overwrite">
                 <input
@@ -568,11 +568,11 @@ function DownloadLoraImportModal({
                   checked={overwrite}
                   onChange={(event) => setOverwrite(event.target.checked)}
                 />
-                覆盖目标目录中已存在的同名文件
+                Overwrite files with the same name in the destination
               </label>
             </div>
 
-            <ul className="import-lora-list" aria-label="近期可导入的 LoRA">
+            <ul className="import-lora-list" aria-label="Recently downloaded LoRAs">
               {listing.candidates.map((item) => {
                 const checked = selected.has(item.sourcePath);
                 const blocked = item.alreadyExists && !overwrite;
@@ -602,17 +602,17 @@ function DownloadLoraImportModal({
                           <span>{formatRelativeTime(item.modifiedAt)}</span>
                           {item.withinDefaultWindow ? (
                             <Badge tone="accent">
-                              近 {listing.defaultSelectHours} 小时
+                              the last {listing.defaultSelectHours} hours
                             </Badge>
                           ) : null}
                           {item.alreadyExists ? (
-                            <Badge tone="warning">目标已存在</Badge>
+                            <Badge tone="warning">Already exists</Badge>
                           ) : (
-                            <Badge tone="success">新文件</Badge>
+                            <Badge tone="success">New file</Badge>
                           )}
                           {item.companionFiles.length ? (
                             <span>
-                              +{item.companionFiles.length} 个附属文件
+                              +{item.companionFiles.length} sidecar files
                             </span>
                           ) : null}
                         </div>
@@ -630,7 +630,7 @@ function DownloadLoraImportModal({
               <div className="import-lora-confirm-box" role="status">
                 <AlertTriangle size={16} />
                 <div>
-                  <strong>即将导入这些 LoRA：</strong>
+                  <strong>These LoRAs will be imported:</strong>
                   <ol>
                     {selectedCandidates.map((item) => (
                       <li key={item.sourcePath}>
@@ -718,8 +718,8 @@ export function ResourcePage({
       onScanComplete(result);
       onToast(
         result.offlinePaths.length
-          ? `扫描完成：更新 ${result.updated} 项，${result.offlinePaths.length} 个路径离线`
-          : `扫描完成：发现 ${result.scanned} 项资源`,
+          ? `Scan complete: ${result.updated} updated, ${result.offlinePaths.length} paths offline`
+          : `Scan complete: ${result.scanned} resources found`,
       );
     } finally {
       setScanning(false);
@@ -730,9 +730,9 @@ export function ResourcePage({
     <div className="page resources-page">
       <header className="page-header">
         <div>
-          <span className="eyebrow">只读模型索引</span>
-          <h1>模型与 LoRA</h1>
-          <p>看得见模型、记得住触发词；原文件始终保持只读。</p>
+          <span className="eyebrow">Read-only model index</span>
+          <h1>Models & LoRAs</h1>
+          <p>Keep models visible and trigger words memorable while source files remain read-only.</p>
         </div>
         <div className="page-actions">
           <Button
@@ -740,21 +740,21 @@ export function ResourcePage({
             icon={<Download size={16} />}
             onClick={() => setImportOpen(true)}
           >
-            导入下载的 LoRA
+            Import downloaded LoRAs
           </Button>
           <Button
             variant="secondary"
             icon={<Folder size={16} />}
             onClick={onOpenSettings}
           >
-            模型目录
+            Model folders
           </Button>
           <Button
             icon={<RefreshCw size={16} className={scanning ? "spin" : ""} />}
             disabled={scanning}
             onClick={() => void scan()}
           >
-            {scanning ? "正在扫描…" : "扫描更新"}
+            {scanning ? "Scanning…" : "Scan for updates"}
           </Button>
         </div>
       </header>
@@ -762,19 +762,19 @@ export function ResourcePage({
       <div className="resource-path-strip">
         <Info size={16} />
         <span>
-          LoRA：<strong>{settings.loraPath}</strong>
+          LoRA: <strong>{settings.loraPath}</strong>
         </span>
         <span>
-          模型：<strong>{settings.checkpointPath}</strong>
+          Models: <strong>{settings.checkpointPath}</strong>
         </span>
-        <Badge tone="success">只读访问</Badge>
+        <Badge tone="success">Read only</Badge>
       </div>
 
       <section className="toolbar">
         <div className="segmented-filter">
           {(
             [
-              ["all", "全部", resources.length],
+              ["all", "All", resources.length],
               [
                 "lora",
                 "LoRA",
@@ -795,7 +795,7 @@ export function ResourcePage({
               ],
               [
                 "offline",
-                "离线",
+                "Offline",
                 resources.filter((item) => !item.available).length,
               ],
             ] as const
@@ -815,15 +815,15 @@ export function ResourcePage({
           <Search size={16} />
           <input
             value={query}
-            aria-label="搜索模型与 LoRA"
+            aria-label="Search models & LoRAs"
             autoComplete="off"
-            placeholder="搜索名称、路径、底模或触发词"
+            placeholder="Search name, path, base model, or trigger word"
             onChange={(event) => setQuery(event.target.value)}
           />
           {query ? (
             <button
               type="button"
-              aria-label="清除资源搜索"
+              aria-label="Clear resource search"
               onClick={() => setQuery("")}
             >
               <X size={14} />
@@ -831,7 +831,7 @@ export function ResourcePage({
           ) : null}
         </label>
         <Badge tone={hasActiveFilter ? "accent" : "neutral"}>
-          显示 {visible.length} / {resources.length}
+          Show {visible.length} / {resources.length}
         </Badge>
         <Select
           value={sort}
@@ -839,9 +839,9 @@ export function ResourcePage({
             setSort(event.target.value as "name" | "modified" | "size")
           }
         >
-          <option value="name">按名称</option>
-          <option value="modified">最近修改</option>
-          <option value="size">文件大小</option>
+          <option value="name">By name</option>
+          <option value="modified">Recently updated</option>
+          <option value="size">File size</option>
         </Select>
       </section>
 
@@ -849,11 +849,11 @@ export function ResourcePage({
         <div className="offline-notice">
           <AlertTriangle size={17} />
           <div>
-            <strong>部分目录暂时不可访问</strong>
-            <span>已保留上次扫描结果，不会因 E 盘离线而删除记录。</span>
+            <strong>Some folders are temporarily unavailable</strong>
+            <span>The previous scan is retained; disconnected drives never cause records to be deleted.</span>
           </div>
           <button type="button" onClick={() => setFilter("offline")}>
-            查看离线项
+            Show offline items
           </button>
         </div>
       ) : null}
@@ -884,17 +884,17 @@ export function ResourcePage({
                     <span>{resourceTypeLabel(resource.resourceType)}</span>
                   </div>
                   <IconButton
-                    label="编辑资源信息"
+                    label="Edit resource details"
                     onClick={() => setEditing(resource)}
                   >
                     <Pencil size={16} />
                   </IconButton>
                 </div>
                 <div className="resource-meta-row">
-                  <span>{resource.baseModel || "底模未知"}</span>
+                  <span>{resource.baseModel || "Unknown base model"}</span>
                   <span>{formatBytes(resource.fileSize)}</span>
                   <Badge tone={resource.available ? "success" : "warning"}>
-                    {resource.available ? "在线" : "离线"}
+                    {resource.available ? "Online" : "Offline"}
                   </Badge>
                 </div>
                 {resource.resourceType === "lora" ? (
@@ -904,7 +904,7 @@ export function ResourcePage({
                     ))}
                     {!resource.confirmedTriggerWords.length ? (
                       <button type="button" onClick={() => setEditing(resource)}>
-                        <Plus size={13} />补充触发词
+                        <Plus size={13} />Add trigger words
                       </button>
                     ) : null}
                     {resource.confirmedTriggerWords.length > 3 ? (
@@ -921,11 +921,11 @@ export function ResourcePage({
       ) : (
         <EmptyState
           icon={<Search size={24} />}
-          title={hasActiveFilter ? "没有符合条件的资源" : "尚未扫描到模型资源"}
+          title={hasActiveFilter ? "No matching resources" : "No model resources scanned yet"}
           description={
             hasActiveFilter
-              ? "换个关键词，或清除搜索与类型筛选后再试。"
-              : "确认目录路径后重新扫描，离线记录仍会安全保留。"
+              ? "Try another keyword or clear the search and type filters."
+              : "Check the folder paths and scan again. Offline records remain safely available."
           }
           action={
             hasActiveFilter ? (
@@ -937,7 +937,7 @@ export function ResourcePage({
                   setFilter("all");
                 }}
               >
-                清除搜索与筛选
+                Clear search & filters
               </Button>
             ) : (
               <Button
@@ -945,7 +945,7 @@ export function ResourcePage({
                 icon={<RefreshCw size={16} />}
                 onClick={() => void scan()}
               >
-                重新扫描
+                Scan again
               </Button>
             )
           }

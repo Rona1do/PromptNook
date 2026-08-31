@@ -142,7 +142,7 @@ function App() {
       }
     } catch (error) {
       setLoadError(
-        `无法打开数据保险箱：${error instanceof Error ? error.message : String(error)}`,
+        `Could not open the data vault: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
       setLoading(false);
@@ -212,7 +212,7 @@ function App() {
       if (modifier && event.key.toLowerCase() === "n") {
         event.preventDefault();
         if (page === "studio") {
-          showToast("创作台已经是一张新画布");
+          showToast("Studio is already a new canvas");
           return;
         }
         window.dispatchEvent(new CustomEvent("promptnook:new"));
@@ -296,7 +296,7 @@ function App() {
         },
       };
     });
-    showToast("总 Prompt 已保存");
+    showToast("Recipe saved");
   }
 
   async function deleteRecipe(recipe: Recipe) {
@@ -305,7 +305,7 @@ function App() {
       recipe.positivePrompt,
       recipe.updatedAt,
     );
-    if (!window.confirm(`将“${displayTitle}”移入回收站？`)) return;
+    if (!window.confirm(`Move “${displayTitle}” to Trash?`)) return;
     await api.deleteRecipe(recipe.id);
     setData((current) =>
       current
@@ -315,7 +315,7 @@ function App() {
           }
         : current,
     );
-    showToast("已移入回收站，可在设置中恢复");
+    showToast("Moved to Trash; restore it from Settings");
   }
 
   async function saveSnippet(input: SnippetInput) {
@@ -332,11 +332,11 @@ function App() {
           : [snippet, ...current.snippets],
       };
     });
-    showToast("单 Prompt 已保存");
+    showToast("Snippet saved");
   }
 
   async function deleteSnippet(snippet: Snippet) {
-    if (!window.confirm(`将“${snippet.text}”移入回收站？`)) return;
+    if (!window.confirm(`Move “${snippet.text}” to Trash?`)) return;
     await api.deleteSnippet(snippet.id);
     setData((current) =>
       current
@@ -346,7 +346,7 @@ function App() {
           }
         : current,
     );
-    showToast("已移入回收站");
+    showToast("Moved to Trash");
   }
 
   async function incrementSnippetUsage(id: string) {
@@ -369,7 +369,7 @@ function App() {
           : current,
       );
     } catch {
-      showToast("词条已加入画布，但使用次数暂未同步");
+      showToast("Snippet added to the canvas, but its usage count could not be synced");
     }
   }
 
@@ -392,7 +392,7 @@ function App() {
   async function deleteCategory(category: Category) {
     if (
       !window.confirm(
-        `删除分类“${category.name}”？词条本身不会删除，只会解除这个分类。`,
+        `Delete category “${category.name}”? Its snippets will remain and only lose this category.`,
       )
     )
       return;
@@ -413,7 +413,7 @@ function App() {
           }
         : current,
     );
-    showToast("分类已移入回收站");
+    showToast("Category moved to Trash");
   }
 
   async function saveResource(resource: Resource) {
@@ -428,7 +428,7 @@ function App() {
           }
         : current,
     );
-    showToast("模型信息已保存");
+    showToast("Model details saved");
   }
 
   function acceptScan(result: ResourceScanResult) {
@@ -449,11 +449,11 @@ function App() {
           : [tip, ...current.tips],
       };
     });
-    showToast("技巧已保存");
+    showToast("Tip saved");
   }
 
   async function deleteTip(tip: Tip) {
-    if (!window.confirm(`将“${tip.title}”移入回收站？`)) return;
+    if (!window.confirm(`Move “${tip.title}” to Trash?`)) return;
     await api.deleteTip(tip.id);
     setData((current) =>
       current
@@ -463,7 +463,7 @@ function App() {
           }
         : current,
     );
-    showToast("已移入回收站");
+    showToast("Moved to Trash");
   }
 
   async function saveSettings(settings: AppSettings | Partial<AppSettings>) {
@@ -745,7 +745,7 @@ function App() {
               }
             >
               <Plus size={16} />
-              新建
+              New
               <kbd>Ctrl N</kbd>
             </button>
           ) : null}
@@ -758,9 +758,9 @@ function App() {
               <div>
                 <strong>PromptNook entered safe recovery mode</strong>
                 <p>
-                  原数据库未被改写。当前显示的是临时空库，请从经过校验的快照恢复。
+                  The original database was not modified. You are viewing a temporary empty library; restore a verified snapshot to continue.
                   {health.recoveryError
-                    ? ` 原因：${health.recoveryError}`
+                    ? ` Reason: ${health.recoveryError}`
                     : ""}
                 </p>
               </div>
@@ -771,7 +771,7 @@ function App() {
                   setSettingsOpen(true);
                 }}
               >
-                打开备份与恢复
+                Open Backup & restore
               </button>
             </div>
           ) : null}
@@ -786,10 +786,10 @@ function App() {
           ) : loadError ? (
             <div className="fatal-state">
               <span><HardDrive size={28} /></span>
-              <h1>数据保险箱暂时无法打开</h1>
+              <h1>The data vault could not be opened</h1>
               <p>{loadError}</p>
               <button type="button" onClick={() => void load()}>
-                重试
+                Retry
               </button>
             </div>
           ) : data ? (
@@ -818,7 +818,7 @@ function App() {
                     );
                     if (duplicate) {
                       showToast(
-                        `单 Prompt 已存在：${duplicate.translation || duplicate.text}`,
+                        `Snippet already exists: ${duplicate.translation || duplicate.text}`,
                       );
                       return false;
                     }
@@ -826,7 +826,7 @@ function App() {
                       id: "",
                       text,
                       translation,
-                      notes: `来源总 Prompt：${sourceTitle}`,
+                      notes: `Source recipe: ${sourceTitle}`,
                       categoryIds: [],
                       favorite: false,
                       translationLocked: Boolean(translation.trim()),

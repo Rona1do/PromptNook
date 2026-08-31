@@ -113,7 +113,7 @@ export function SettingsDrawer({
     key: "loraPath" | "checkpointPath" | "diffusionModelPath" | "backupPath",
   ) {
     if (!isDesktopRuntime()) {
-      onToast("浏览器预览中可直接编辑路径；桌面版会打开目录选择器");
+      onToast("Edit paths directly in the browser preview; the desktop app opens a folder picker");
       return;
     }
     const selected = await open({ directory: true, multiple: false });
@@ -134,9 +134,9 @@ export function SettingsDrawer({
         setCredentialConfigured(true);
         setApiKey("");
       }
-      onToast("设置已保存");
+      onToast("Settings saved");
     } catch (error) {
-      onToast(`设置保存失败：${readableError(error)}`);
+      onToast(`Could not save settings: ${readableError(error)}`);
     } finally {
       setSaving(false);
     }
@@ -162,7 +162,7 @@ export function SettingsDrawer({
     try {
       const backup = await api.createBackup();
       setBackups((items) => [backup, ...items]);
-      onToast("已创建一致性快照");
+      onToast("Verified snapshot created");
     } finally {
       setWorking(false);
     }
@@ -172,7 +172,7 @@ export function SettingsDrawer({
     setWorking(true);
     try {
       const message = await api.exportData(format);
-      onToast(message || "导出已完成");
+      onToast(message || "Export complete");
     } finally {
       setWorking(false);
     }
@@ -190,13 +190,13 @@ export function SettingsDrawer({
       ),
     );
     await onDataChanged();
-    onToast("项目已恢复");
+    onToast("Item restored");
   }
 
   async function purgeItem(item: TrashItem) {
     if (
       !window.confirm(
-        `彻底删除“${item.title}”？此操作不可恢复，关联示例图若不再被引用也会一并清理。`,
+        `Permanently delete “${item.title}”? This cannot be undone and unreferenced preview images will also be removed.`,
       )
     ) {
       return;
@@ -214,7 +214,7 @@ export function SettingsDrawer({
         ),
       );
       await onDataChanged();
-      onToast("已彻底删除");
+      onToast("Permanently deleted");
     } catch (error) {
       onToast(readableError(error));
     } finally {
@@ -226,7 +226,7 @@ export function SettingsDrawer({
     if (!trash.length) return;
     if (
       !window.confirm(
-        `清空回收站中的 ${trash.length} 项？此操作不可恢复，并会清理不再引用的图片文件。`,
+        `Permanently delete all ${trash.length} Trash items? This cannot be undone and unreferenced images will be removed.`,
       )
     ) {
       return;
@@ -236,7 +236,7 @@ export function SettingsDrawer({
       const count = await api.emptyTrash();
       setTrash([]);
       await onDataChanged();
-      onToast(`已彻底删除 ${count} 项`);
+      onToast(`Permanently deleted ${count} items`);
     } catch (error) {
       onToast(readableError(error));
     } finally {
@@ -247,7 +247,7 @@ export function SettingsDrawer({
   async function restoreBackup(backup: BackupSnapshot) {
     if (
       !window.confirm(
-        `恢复 ${formatDate(backup.createdAt)} 的快照？当前资料会先自动备份，恢复完成后重新载入。`,
+        `Restore the snapshot from ${formatDate(backup.createdAt)}? Current data will be backed up first and reloaded after restore.`,
       )
     )
       return;
@@ -255,7 +255,7 @@ export function SettingsDrawer({
     try {
       await api.restoreBackup(backup.id);
       await onDataChanged();
-      onToast("快照校验并恢复完成");
+      onToast("Snapshot verified and restored");
     } finally {
       setWorking(false);
     }
@@ -263,7 +263,7 @@ export function SettingsDrawer({
 
   async function importPackage() {
     if (!isDesktopRuntime()) {
-      onToast("迁移包导入需要在桌面版中使用");
+      onToast("Migration packages can only be imported in the desktop app");
       return;
     }
     const selected = await open({
@@ -279,7 +279,7 @@ export function SettingsDrawer({
         imported,
         ...items.filter((item) => item.id !== imported.id),
       ]);
-      onToast("迁移包已校验导入；可从最近快照中恢复");
+      onToast("Migration package verified and imported; restore it from the latest snapshots");
     } finally {
       setWorking(false);
     }
@@ -290,7 +290,7 @@ export function SettingsDrawer({
     setWorking(true);
     try {
       const count = await api.importGlossaryCsv(await file.text());
-      onToast(`已导入 ${count} 条双语词表记录`);
+      onToast(`Imported ${count} glossary entries`);
     } finally {
       setWorking(false);
       if (glossaryInputRef.current) glossaryInputRef.current.value = "";
@@ -302,7 +302,7 @@ export function SettingsDrawer({
     await api.saveTranslationApiKey(draft.translationProvider, "");
     setApiKey("");
     setCredentialConfigured(false);
-    onToast("翻译 API 密钥已从 Windows 凭据管理器移除");
+    onToast("Translation API key removed from Windows Credential Manager");
   }
 
   function applyGooglePreset() {
@@ -314,7 +314,7 @@ export function SettingsDrawer({
       translationModel: "gemini-3.1-flash-lite",
     }));
     setTranslationTest(null);
-    onToast("已套用 Google Gemini 参数；输入 API 密钥后可先测试翻译");
+    onToast("Google Gemini settings applied; enter an API key to test translation");
   }
 
   async function testTranslation() {
@@ -332,16 +332,16 @@ export function SettingsDrawer({
         testConnection: true,
       });
       if (!result.text.trim()) {
-        throw new Error("服务返回了空译文");
+        throw new Error("The service returned an empty translation");
       }
       setTranslationTest({
         ok: true,
-        message: `连接成功，测试译文：${result.text}`,
+        message: `Connection successful. Test translation: ${result.text}`,
       });
     } catch (error) {
       setTranslationTest({
         ok: false,
-        message: `测试失败：${readableError(error)}`,
+        message: `Test failed: ${readableError(error)}`,
       });
     } finally {
       setTestingTranslation(false);
@@ -354,7 +354,7 @@ export function SettingsDrawer({
         ref={drawerRef}
         tabIndex={-1}
         className="settings-drawer"
-        aria-label="设置"
+        aria-label="Settings"
         role="dialog"
         aria-modal="true"
         onKeyDown={(event) => {
@@ -602,30 +602,30 @@ export function SettingsDrawer({
                     }));
                   }}
                 >
-                  <option value="off">仅使用内置词表（离线）</option>
-                  <option value="ollama">Ollama 本地服务</option>
-                  <option value="openai">OpenAI-compatible 接口</option>
+                  <option value="off">Built-in glossary only (offline)</option>
+                  <option value="ollama">Local Ollama service</option>
+                  <option value="openai">OpenAI-compatible endpoint</option>
                 </Select>
               </Field>
               <div className="export-row">
-                <span>使用 Google Gemini API</span>
+                <span>Use the Google Gemini API</span>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={applyGooglePreset}
                 >
-                  一键套用 Google 参数
+                  Apply Google preset
                 </Button>
               </div>
               {draft.translationProvider !== "off" ? (
                 <>
                   <Field
-                    label="API 地址"
+                    label="API endpoint"
                     hint={
                       draft.translationEndpoint.includes(
                         "generativelanguage.googleapis.com",
                       )
-                        ? "推荐：一键套用 Google + 填写 Gemini 密钥并开启「允许自动翻译」。单句走 Gemini；长总 Prompt 会分段翻译。勿依赖免费网页翻译接口（易 429）。"
+                        ? "Recommended: apply the Google preset, enter a Gemini key, and enable automatic translation. Long prompts are translated in chunks. Free web translation endpoints often rate-limit requests."
                         : undefined
                     }
                   >
@@ -641,7 +641,7 @@ export function SettingsDrawer({
                       placeholder="http://localhost:11434/v1"
                     />
                   </Field>
-                  <Field label="模型名称">
+                  <Field label="Model name">
                     <input
                       value={draft.translationModel}
                       onChange={(event) => {
@@ -657,10 +657,10 @@ export function SettingsDrawer({
                   <Field
                     label={
                       credentialConfigured
-                        ? "API 密钥（已安全保存）"
-                        : "API 密钥（可选）"
+                        ? "API key (stored securely)"
+                        : "API key (optional)"
                     }
-                    hint="只写入 Windows 凭据管理器，不进入数据库、备份或导出包。"
+                    hint="Stored only in Windows Credential Manager, never in the database, backups, or exports."
                   >
                     <span className="path-input">
                       <input
@@ -673,7 +673,7 @@ export function SettingsDrawer({
                         }}
                         placeholder={
                           credentialConfigured
-                            ? "输入新密钥可替换现有凭据"
+                            ? "Enter a new key to replace the stored credential"
                             : "sk-…"
                         }
                       />
@@ -683,7 +683,7 @@ export function SettingsDrawer({
                           variant="ghost"
                           onClick={() => void clearCredential()}
                         >
-                          移除
+                          Remove
                         </Button>
                       ) : (
                         <KeyRound size={17} aria-hidden="true" />
@@ -692,11 +692,11 @@ export function SettingsDrawer({
                   </Field>
                   <div className="setting-row">
                     <div>
-                      <strong>允许自动翻译</strong>
-                      <p>仅在你明确开启后，才会向配置的服务发送文本。</p>
+                      <strong>Allow automatic translation</strong>
+                      <p>Text is sent to the configured service only after you explicitly enable this option.</p>
                     </div>
                     <Toggle
-                      label="允许自动翻译"
+                      label="Allow automatic translation"
                       checked={draft.onlineTranslationEnabled}
                       onChange={(checked) =>
                         setDraft((current) => ({
@@ -707,7 +707,7 @@ export function SettingsDrawer({
                     />
                   </div>
                   <div className="export-row">
-                    <span>使用当前填写内容发起一次真实翻译，不必先保存。</span>
+                    <span>Run a real translation with the current values without saving first.</span>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -718,7 +718,7 @@ export function SettingsDrawer({
                       }
                       onClick={() => void testTranslation()}
                     >
-                      {testingTranslation ? "测试中…" : "测试翻译"}
+                      {testingTranslation ? "Testing…" : "Test translation"}
                     </Button>
                   </div>
                   {translationTest ? (
@@ -729,14 +729,14 @@ export function SettingsDrawer({
                 </>
               ) : (
                 <Notice>
-                  离线词表未命中的内容会标记为“待翻译”，不会影响保存。
+                  Text not found in the offline glossary is marked Pending translation and can still be saved.
                 </Notice>
               )}
               <Notice tone="success">
-                手工修改并锁定的译文永远不会被自动翻译覆盖。
+                Manually edited and locked translations are never overwritten.
               </Notice>
               <div className="export-row">
-                <span>自己的双语词表</span>
+                <span>Custom glossary</span>
                 <input
                   ref={glossaryInputRef}
                   type="file"
@@ -753,7 +753,7 @@ export function SettingsDrawer({
                   disabled={working}
                   onClick={() => glossaryInputRef.current?.click()}
                 >
-                  导入英中两列 CSV
+                  Import a two-column glossary CSV
                 </Button>
               </div>
             </div>
@@ -763,16 +763,16 @@ export function SettingsDrawer({
             <div className="settings-section">
               <div className="section-heading">
                 <div>
-                  <h3>数据保险箱</h3>
-                  <p>活库保存在本机；建议把备份放到另一块磁盘或同步盘。</p>
+                  <h3>Data vault</h3>
+                  <p>Your live library stays on this device. Keep backups on another drive or synced folder.</p>
                 </div>
                 <ShieldCheck size={22} />
               </div>
-              <Field label="第二备份位置">
+              <Field label="Secondary backup location">
                 <span className="path-input">
                   <input
                     value={draft.backupPath}
-                    placeholder="建议选择 D 盘、移动硬盘或 OneDrive"
+                    placeholder="Choose another drive, removable storage, or a synced folder"
                     onChange={(event) =>
                       setDraft((current) => ({
                         ...current,
@@ -781,7 +781,7 @@ export function SettingsDrawer({
                     }
                   />
                   <IconButton
-                    label="选择备份目录"
+                    label="Choose backup folder"
                     onClick={() => void chooseFolder("backupPath")}
                   >
                     <FolderOpen size={17} />
@@ -790,11 +790,11 @@ export function SettingsDrawer({
               </Field>
               {!draft.backupPath ? (
                 <Notice tone="warning">
-                  尚未设置异盘备份。单块硬盘损坏时，本机快照也可能丢失。
+                  No secondary backup is configured. A disk failure could also destroy local snapshots.
                 </Notice>
               ) : (
                 <Notice tone="success">
-                  已配置第二备份位置，自动备份会在修改后空闲时运行。
+                  A secondary backup location is configured; automatic backups run after changes while idle.
                 </Notice>
               )}
               <div className="button-row">
@@ -804,7 +804,7 @@ export function SettingsDrawer({
                   disabled={working}
                   onClick={() => void createBackup()}
                 >
-                  立即创建快照
+                  Create snapshot now
                 </Button>
                 <Button
                   variant="ghost"
@@ -812,7 +812,7 @@ export function SettingsDrawer({
                   disabled={working}
                   onClick={() => void exportData("promptnook")}
                 >
-                  导出完整包
+                  Export migration package
                 </Button>
                 <Button
                   variant="ghost"
@@ -820,12 +820,12 @@ export function SettingsDrawer({
                   disabled={working}
                   onClick={() => void importPackage()}
                 >
-                  导入迁移包
+                  Import migration package
                 </Button>
               </div>
               <div className="subsection-title">
-                <strong>最近快照</strong>
-                <span>恢复前会完整校验数据库、外键与文件哈希</span>
+                <strong>Recent snapshots</strong>
+                <span>Database integrity, foreign keys, and file hashes are verified before restore</span>
               </div>
               {backups.length ? (
                 <div className="backup-list">
@@ -841,10 +841,10 @@ export function SettingsDrawer({
                       <Badge
                         tone={backup.status === "valid" ? "success" : "danger"}
                       >
-                        {backup.status === "valid" ? "结构正常" : "结构异常"}
+                        {backup.status === "valid" ? "Valid" : "Invalid"}
                       </Badge>
                       <IconButton
-                        label="恢复此快照"
+                        label="Restore this snapshot"
                         disabled={working || backup.status !== "valid"}
                         onClick={() => void restoreBackup(backup)}
                       >
@@ -856,25 +856,25 @@ export function SettingsDrawer({
               ) : (
                 <EmptyState
                   icon={<Database size={23} />}
-                  title="还没有快照"
-                  description="保存修改后会自动创建，也可以现在手动创建。"
+                  title="No snapshots yet"
+                  description="Snapshots are created automatically after changes, or you can create one now."
                 />
               )}
               <div className="export-row">
-                <span>面向人工查看</span>
+                <span>Human-readable exports</span>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => void exportData("json")}
                 >
-                  导出 JSON
+                  Export JSON
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => void exportData("csv")}
                 >
-                  导出 CSV
+                  Export CSV
                 </Button>
               </div>
             </div>
@@ -884,9 +884,9 @@ export function SettingsDrawer({
             <div className="settings-section">
               <div className="section-heading">
                 <div>
-                  <h3>回收站</h3>
+                  <h3>Trash</h3>
                   <p>
-                    默认只软删除。彻底删除会抹除记录并清理无人引用的示例图文件。
+                    Items are moved to Trash by default. Permanent deletion removes records and unreferenced preview images.
                   </p>
                 </div>
                 <ArchiveRestore size={22} />
@@ -894,14 +894,14 @@ export function SettingsDrawer({
               {trash.length ? (
                 <>
                   <div className="export-row">
-                    <span>共 {trash.length} 项可恢复或彻底删除</span>
+                    <span>{trash.length} items can be restored or permanently deleted</span>
                     <Button
                       size="sm"
                       variant="ghost"
                       disabled={working}
                       onClick={() => void emptyTrash()}
                     >
-                      清空回收站
+                      Empty Trash
                     </Button>
                   </div>
                   <div className="trash-list">
@@ -913,7 +913,7 @@ export function SettingsDrawer({
                         <div>
                           <strong>{item.title}</strong>
                           <small>
-                            {formatDate(item.deletedAt)} 移入回收站
+                            {formatDate(item.deletedAt)} Move to Trash
                           </small>
                         </div>
                         <div className="button-row">
@@ -924,7 +924,7 @@ export function SettingsDrawer({
                             disabled={working}
                             onClick={() => void restoreItem(item)}
                           >
-                            恢复
+                            Restore
                           </Button>
                           <Button
                             size="sm"
@@ -932,7 +932,7 @@ export function SettingsDrawer({
                             disabled={working}
                             onClick={() => void purgeItem(item)}
                           >
-                            彻底删除
+                            Delete permanently
                           </Button>
                         </div>
                       </article>
@@ -942,8 +942,8 @@ export function SettingsDrawer({
               ) : (
                 <EmptyState
                   icon={<CheckCircle2 size={23} />}
-                  title="回收站是空的"
-                  description="删除的 Prompt、分类和技巧会先来到这里。"
+                  title="Trash is empty"
+                  description="Deleted recipes, snippets, categories, and tips appear here first."
                 />
               )}
             </div>
@@ -953,15 +953,15 @@ export function SettingsDrawer({
         <footer className="drawer-footer">
           <div className="local-only">
             <CloudOff size={15} />
-            <span>本地优先 · 不登录也能使用</span>
+            <span>Local first · No account required</span>
           </div>
-          <Button variant="ghost" onClick={onClose}>取消</Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button
             icon={<Save size={16} />}
             disabled={saving}
             onClick={() => void save()}
           >
-            {saving ? "保存中…" : "保存设置"}
+            {saving ? "Saving…" : "Save settings"}
           </Button>
         </footer>
       </aside>

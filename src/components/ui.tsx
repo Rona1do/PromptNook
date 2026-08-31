@@ -183,7 +183,7 @@ export function Modal({
             {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
             <h2>{title}</h2>
           </div>
-          <IconButton label="关闭" onClick={onClose}>
+          <IconButton label="Close" onClick={onClose}>
             <X size={19} />
           </IconButton>
         </header>
@@ -215,7 +215,7 @@ export function EmptyState({
   );
 }
 
-export function Spinner({ label = "正在加载" }: { label?: string }) {
+export function Spinner({ label = "Loading" }: { label?: string }) {
   return (
     <div className="spinner" role="status">
       <LoaderCircle size={20} />

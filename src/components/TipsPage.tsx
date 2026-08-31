@@ -30,10 +30,10 @@ const scopeCopy: Record<
   TipScope,
   { label: string; icon: typeof Globe2; className: string }
 > = {
-  global: { label: "通用技巧", icon: Globe2, className: "scope-global" },
-  model: { label: "模型技巧", icon: Tag, className: "scope-model" },
-  lora: { label: "LoRA 技巧", icon: Sparkles, className: "scope-lora" },
-  category: { label: "分类技巧", icon: Filter, className: "scope-category" },
+  global: { label: "General tip", icon: Globe2, className: "scope-global" },
+  model: { label: "Model tip", icon: Tag, className: "scope-model" },
+  lora: { label: "LoRA tip", icon: Sparkles, className: "scope-lora" },
+  category: { label: "Category tip", icon: Filter, className: "scope-category" },
 };
 
 function newTip(): TipInput {
@@ -108,13 +108,13 @@ function TipEditor({
   async function save() {
     setSaveError("");
     if (!draft.title.trim() || !draft.content.trim()) {
-      const message = "请填写技巧标题和内容";
+      const message = "Enter a title and content for the tip";
       setSaveError(message);
       onToast(message);
       return;
     }
     if (draft.scope !== "global" && !draft.targetId) {
-      const message = "请选择这条技巧对应的对象";
+      const message = "Choose what this tip applies to";
       setSaveError(message);
       onToast(message);
       return;
@@ -124,7 +124,7 @@ function TipEditor({
       await onSave(draft);
       onClose();
     } catch (error) {
-      const message = `保存失败：${readableError(error)}`;
+      const message = `Save failed: ${readableError(error)}`;
       setSaveError(message);
       onToast(message);
     } finally {
@@ -134,8 +134,8 @@ function TipEditor({
 
   return (
     <Modal
-      title={tip ? "编辑技巧" : "记录新技巧"}
-      eyebrow="把经验留给未来的自己"
+      title={tip ? "Edit tip" : "New tip"}
+      eyebrow="Save what you learned for your future self"
       onClose={onClose}
       footer={
         <>
@@ -144,23 +144,23 @@ function TipEditor({
               {saveError}
             </span>
           ) : null}
-          <Button variant="ghost" onClick={onClose}>取消</Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button
             icon={<Check size={16} />}
             disabled={saving}
             onClick={() => void save()}
           >
-            {saving ? "保存中…" : "保存技巧"}
+            {saving ? "Saving…" : "Save tip"}
           </Button>
         </>
       }
     >
       <div className="tip-editor">
-        <Field label="标题">
+        <Field label="Title">
           <input
             autoFocus
             value={draft.title}
-            placeholder="例如：人物肤色偏暖时先降低 LoRA 权重"
+            placeholder="For example: lower the LoRA weight when skin tones look too warm"
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -169,11 +169,11 @@ function TipEditor({
             }
           />
         </Field>
-        <Field label="经验或技巧">
+        <Field label="Guidance">
           <textarea
             rows={6}
             value={draft.content}
-            placeholder="记录具体做法、推荐数值和判断依据…"
+            placeholder="Record concrete steps, recommended values, and reasoning…"
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -182,7 +182,7 @@ function TipEditor({
             }
           />
         </Field>
-        <Field label="适用范围">
+        <Field label="Applies to">
           <div className="scope-picker">
             {(Object.keys(scopeCopy) as TipScope[]).map((scope) => {
               const item = scopeCopy[scope];
@@ -206,17 +206,17 @@ function TipEditor({
           <Field
             label={
               draft.scope === "model"
-                ? "选择模型"
+                ? "Select model"
                 : draft.scope === "lora"
-                  ? "选择 LoRA"
-                  : "选择分类"
+                  ? "Select LoRA"
+                  : "Select category"
             }
           >
             <Select
               value={draft.targetId || ""}
               onChange={(event) => changeTarget(event.target.value)}
             >
-              <option value="">请选择</option>
+              <option value="">Select…</option>
               {targets.map((target) => (
                 <option key={target.id} value={target.id}>
                   {target.name}
@@ -228,8 +228,8 @@ function TipEditor({
           <div className="tip-context-preview">
             <Globe2 size={17} />
             <div>
-              <strong>创作台始终显示</strong>
-              <span>适合不依赖模型或分类的通用经验。</span>
+              <strong>Always show in Studio</strong>
+              <span>For general guidance that does not depend on a model or category.</span>
             </div>
           </div>
         )}
@@ -308,16 +308,16 @@ export function TipsPage({
     <div className="page tips-page">
       <header className="page-header">
         <div>
-          <span className="eyebrow">你的私人方法论</span>
-          <h1>技巧</h1>
-          <p>把试出来的经验记在对应模型旁边，下次创作时自动出现。</p>
+          <span className="eyebrow">Your personal playbook</span>
+          <h1>Tips</h1>
+          <p>Attach hard-won knowledge to its model so it appears in your next session.</p>
         </div>
         <div className="page-actions">
           <Button
             icon={<Plus size={17} />}
             onClick={() => setEditing("new")}
           >
-            记录新技巧
+            New tip
           </Button>
         </div>
       </header>
@@ -326,12 +326,12 @@ export function TipsPage({
         <div className="segmented-filter">
           {(
             [
-              ["all", "全部"],
-              ["favorite", "收藏"],
-              ["global", "通用"],
-              ["model", "模型"],
+              ["all", "All"],
+              ["favorite", "Favorite"],
+              ["global", "General"],
+              ["model", "Model"],
               ["lora", "LoRA"],
-              ["category", "分类"],
+              ["category", "Categories"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -350,7 +350,7 @@ export function TipsPage({
           <Search size={16} />
           <input
             value={query}
-            placeholder="搜索技巧内容"
+            placeholder="Search tips"
             onChange={(event) => setQuery(event.target.value)}
           />
           {query ? (
@@ -378,7 +378,7 @@ export function TipsPage({
                   <button
                     type="button"
                     className={tip.favorite ? "tip-star is-favorite" : "tip-star"}
-                    aria-label={tip.favorite ? "取消收藏" : "收藏"}
+                    aria-label={tip.favorite ? "Remove favorite" : "Favorite"}
                     onClick={() =>
                       void onSave({ ...tip, favorite: !tip.favorite })
                     }
@@ -390,7 +390,7 @@ export function TipsPage({
                   </button>
                   <div className="more-menu">
                     <IconButton
-                      label="更多操作"
+                      label="More actions"
                       onClick={() =>
                         setMenuId((current) =>
                           current === tip.id ? null : tip.id,
@@ -402,14 +402,14 @@ export function TipsPage({
                     {menuId === tip.id ? (
                       <div className="context-menu context-menu-right">
                         <button type="button" onClick={() => setEditing(tip)}>
-                          <Pencil size={15} />编辑
+                          <Pencil size={15} />Edit
                         </button>
                         <button
                           type="button"
                           className="danger"
                           onClick={() => void onDelete(tip)}
                         >
-                          <Trash2 size={15} />移入回收站
+                          <Trash2 size={15} />Move to Trash
                         </button>
                       </div>
                     ) : null}
@@ -432,21 +432,21 @@ export function TipsPage({
             onClick={() => setEditing("new")}
           >
             <span><Lightbulb size={22} /></span>
-            <strong>记下刚刚学到的技巧</strong>
-            <small>几秒钟，省下未来反复试错的时间</small>
+            <strong>Record what you just learned</strong>
+            <small>A few seconds now can prevent repeated trial and error later</small>
           </button>
         </div>
       ) : (
         <EmptyState
           icon={<Lightbulb size={24} />}
-          title="没有找到相关技巧"
-          description="调整筛选条件，或记录一条新的经验。"
+          title="No matching tips"
+          description="Adjust the filters or record a new tip."
           action={
             <Button
               icon={<Plus size={16} />}
               onClick={() => setEditing("new")}
             >
-              记录新技巧
+              New tip
             </Button>
           }
         />

@@ -5,9 +5,9 @@ import type { Revision } from "../types";
 import { Badge, Button, EmptyState, Modal } from "./ui";
 
 function revisionTitle(snapshot: unknown) {
-  if (!snapshot || typeof snapshot !== "object") return "历史版本";
+  if (!snapshot || typeof snapshot !== "object") return "Revisions";
   const value = snapshot as Record<string, unknown>;
-  return String(value.title || value.text || "历史版本");
+  return String(value.title || value.text || "Revisions");
 }
 
 function revisionSummary(snapshot: unknown) {
@@ -54,7 +54,7 @@ export function RevisionHistory({
         if (active) setRevisions(items);
       })
       .catch((error) => {
-        onToast(`无法读取修改历史：${String(error)}`);
+        onToast(`Could not load revision history: ${String(error)}`);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -66,8 +66,8 @@ export function RevisionHistory({
 
   return (
     <Modal
-      title="修改历史"
-      eyebrow="可恢复 · 最多显示 100 个版本"
+      title="Revision history"
+      eyebrow="Restorable · Up to 100 revisions"
       size="lg"
       onClose={onClose}
     >
@@ -75,7 +75,7 @@ export function RevisionHistory({
         {loading ? (
           <div className="revision-loading">
             <Clock3 size={18} />
-            正在读取历史版本…
+            Loading revisions…
           </div>
         ) : revisions.length ? (
           <div className="revision-list">
@@ -87,7 +87,7 @@ export function RevisionHistory({
                 <div className="revision-copy">
                   <div>
                     <strong>{revisionTitle(revision.snapshot)}</strong>
-                    {index === 0 ? <Badge tone="neutral">最近一次</Badge> : null}
+                    {index === 0 ? <Badge tone="neutral">Most recent</Badge> : null}
                   </div>
                   <small>{formatRevisionTime(revision.createdAt)}</small>
                   {revisionSummary(revision.snapshot) ? (
@@ -101,14 +101,14 @@ export function RevisionHistory({
                   onClick={() => {
                     if (
                       window.confirm(
-                        "把这个历史版本载入编辑器？只有再次点击“保存”后才会覆盖当前版本。",
+                        "Load this revision into the editor? It will not replace the current version until you click Save.",
                       )
                     ) {
                       onApply(revision.snapshot);
                     }
                   }}
                 >
-                  载入
+                  Load
                 </Button>
               </article>
             ))}
@@ -116,8 +116,8 @@ export function RevisionHistory({
         ) : (
           <EmptyState
             icon={<History size={23} />}
-            title="还没有历史版本"
-            description="同一条内容首次修改并保存后，这里会保留修改前的版本。"
+            title="No revisions yet"
+            description="After the first edit is saved, the previous version will appear here."
           />
         )}
       </div>

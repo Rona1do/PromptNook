@@ -251,7 +251,7 @@ export function PromptChipEditor({
     const [moved] = nextTranslations.splice(fromOrdinal, 1);
     nextTranslations.splice(toOrdinal, 0, moved ?? "");
     emitPromptChange(nextSegments, nextTranslations);
-    setAnnouncement(`已将第 ${fromOrdinal + 1} 项移动到第 ${toOrdinal + 1} 项`);
+    setAnnouncement(`Moved item ${fromOrdinal + 1} to position ${toOrdinal + 1}`);
   }
 
   function mergeWithNext(ordinal: number) {
@@ -273,7 +273,7 @@ export function PromptChipEditor({
       .join(" ");
     nextTranslations.splice(ordinal, 2, mergedTranslation);
     emitPromptChange(nextSegments, nextTranslations);
-    setAnnouncement(`已合并第 ${ordinal + 1}、${ordinal + 2} 项`);
+    setAnnouncement(`Merged items ${ordinal + 1} and ${ordinal + 2}`);
   }
 
   function setWeight(segmentIndex: number, value: string) {
@@ -297,7 +297,7 @@ export function PromptChipEditor({
 
     const candidate = parsePrompt(splitEditor.value);
     if (candidate.chips.length <= 1) {
-      setAnnouncement("没有找到顶层逗号、分号或换行；括号和引号内不会拆分");
+      setAnnouncement("No top-level comma, semicolon, or line break found; text inside parentheses and quotes stays intact");
       return;
     }
 
@@ -315,7 +315,7 @@ export function PromptChipEditor({
     );
     emitPromptChange(nextSegments, nextTranslations);
     setSplitEditor(null);
-    setAnnouncement(`已按顶层分隔符拆成 ${candidate.chips.length} 项`);
+    setAnnouncement(`Split into ${candidate.chips.length} items at top-level separators`);
   }
 
   async function saveSnippet(ordinal: number) {
@@ -329,11 +329,11 @@ export function PromptChipEditor({
       );
       setAnnouncement(
         saved
-          ? `“${chip.value}”已保存到单 Prompt`
-          : `“${chip.value}”已存在，没有重复保存`,
+          ? `Saved “${chip.value}” to Snippets`
+          : `“${chip.value}” already exists and was not duplicated`,
       );
     } catch {
-      setAnnouncement("保存单 Prompt 失败，请稍后重试");
+      setAnnouncement("Could not save the snippet; try again");
     } finally {
       setSavingOrdinal(null);
     }
@@ -342,7 +342,7 @@ export function PromptChipEditor({
   if (!parsed.chips.length) {
     return (
       <div className="chip-empty">
-        输入 Prompt 后，这里会自动拆成可编辑的小卡片
+        Enter a prompt to split it into editable cards
       </div>
     );
   }
@@ -371,9 +371,9 @@ export function PromptChipEditor({
         aria-hidden="true"
       >
         <span>#</span>
-        <span>英文原文</span>
-        <span>中文译文</span>
-        <span>操作</span>
+        <span>Source prompt</span>
+        <span>Translation</span>
+        <span>Actions</span>
       </div>
 
       {parsed.chips.map((chip, ordinal) => {
@@ -411,8 +411,8 @@ export function PromptChipEditor({
               draggable
               role="button"
               tabIndex={0}
-              aria-label={`拖动第 ${ordinal + 1} 项`}
-              title="拖动排序"
+              aria-label={`Drag item ${ordinal + 1}`}
+              title="Drag to reorder"
               onDragStart={(event: DragEvent<HTMLSpanElement>) => {
                 event.dataTransfer.effectAllowed = "move";
                 setDragging(ordinal);
@@ -431,7 +431,7 @@ export function PromptChipEditor({
 
             <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
               <input
-                aria-label={`第 ${ordinal + 1} 项英文原文`}
+                aria-label={`Source prompt for item ${ordinal + 1}`}
                 value={segment.value}
                 onChange={(event) =>
                   editEnglish(ordinal, chip.segmentIndex, event.target.value)
@@ -455,15 +455,15 @@ export function PromptChipEditor({
                     gap: 4,
                   }}
                 >
-                  权重
+                  Weight
                   <input
                     type="number"
                     min="-10"
                     max="10"
                     step="0.05"
-                    aria-label={`第 ${ordinal + 1} 项权重`}
+                    aria-label={`Weight for item ${ordinal + 1}`}
                     value={weighted?.weight ?? ""}
-                    placeholder="无"
+                    placeholder="None"
                     onChange={(event) =>
                       setWeight(chip.segmentIndex, event.target.value)
                     }
@@ -491,19 +491,19 @@ export function PromptChipEditor({
                       cursor: "pointer",
                     }}
                   >
-                    清除
+                    Clear
                   </button>
                 ) : null}
-                <span title={`原分隔符：${JSON.stringify(segment.separator)}`}>
-                  {segment.delimiter ? `分隔 ${segment.delimiter}` : "末项"}
+                <span title={`Original separator: ${JSON.stringify(segment.separator)}`}>
+                  {segment.delimiter ? `Separator ${segment.delimiter}` : "Last item"}
                 </span>
               </div>
             </div>
 
             <input
-              aria-label={`第 ${ordinal + 1} 项中文译文`}
+              aria-label={`Translation for item ${ordinal + 1}`}
               value={translations[ordinal] ?? ""}
-              placeholder="待翻译"
+              placeholder="Pending translation"
               onChange={(event) =>
                 editTranslation(ordinal, event.target.value)
               }
@@ -526,8 +526,8 @@ export function PromptChipEditor({
             >
               <button
                 type="button"
-                aria-label={`上移第 ${ordinal + 1} 项`}
-                title="上移（键盘可操作）"
+                aria-label={`Move item ${ordinal + 1} up`}
+                title="Move up (keyboard accessible)"
                 disabled={ordinal === 0}
                 onClick={() => move(ordinal, ordinal - 1)}
                 style={buttonStyle(ordinal === 0)}
@@ -536,8 +536,8 @@ export function PromptChipEditor({
               </button>
               <button
                 type="button"
-                aria-label={`下移第 ${ordinal + 1} 项`}
-                title="下移（键盘可操作）"
+                aria-label={`Move item ${ordinal + 1} down`}
+                title="Move down (keyboard accessible)"
                 disabled={ordinal === parsed.chips.length - 1}
                 onClick={() => move(ordinal, ordinal + 1)}
                 style={buttonStyle(ordinal === parsed.chips.length - 1)}
@@ -546,8 +546,8 @@ export function PromptChipEditor({
               </button>
               <button
                 type="button"
-                aria-label={`再次拆分第 ${ordinal + 1} 项`}
-                title="在编辑框加入顶层分隔符后拆分"
+                aria-label={`Split item ${ordinal + 1} again`}
+                title="Add a top-level separator in the editor, then split"
                 onClick={() =>
                   setSplitEditor(
                     isSplitting
@@ -561,8 +561,8 @@ export function PromptChipEditor({
               </button>
               <button
                 type="button"
-                aria-label={`合并第 ${ordinal + 1} 项与下一项`}
-                title="与下一项合并"
+                aria-label={`Merge item ${ordinal + 1} with the next item`}
+                title="Merge with next"
                 disabled={ordinal === parsed.chips.length - 1}
                 onClick={() => mergeWithNext(ordinal)}
                 style={buttonStyle(ordinal === parsed.chips.length - 1)}
@@ -571,8 +571,8 @@ export function PromptChipEditor({
               </button>
               <button
                 type="button"
-                aria-label={`将第 ${ordinal + 1} 项保存为单 Prompt`}
-                title="保存为单 Prompt"
+                aria-label={`Save item ${ordinal + 1} as a snippet`}
+                title="Save as snippet"
                 disabled={savingOrdinal === ordinal}
                 onClick={() => void saveSnippet(ordinal)}
                 style={{
@@ -605,9 +605,9 @@ export function PromptChipEditor({
                 <textarea
                   autoFocus
                   rows={2}
-                  aria-label="输入带顶层分隔符的片段"
+                  aria-label="Enter text with top-level separators"
                   value={splitEditor.value}
-                  placeholder="例如：looking at camera, smiling"
+                  placeholder="For example: looking at camera, smiling"
                   onChange={(event) =>
                     setSplitEditor({
                       ordinal,
@@ -641,7 +641,7 @@ export function PromptChipEditor({
                   <button
                     type="button"
                     onClick={applySplit}
-                    title="按顶层逗号、分号或换行拆分（Ctrl+Enter）"
+                    title="Split on top-level commas, semicolons, or line breaks (Ctrl+Enter)"
                     style={{
                       ...iconButtonStyle,
                       color: "#fff",
@@ -654,7 +654,7 @@ export function PromptChipEditor({
                   <button
                     type="button"
                     onClick={() => setSplitEditor(null)}
-                    title="取消（Esc）"
+                    title="Cancel (Esc)"
                     style={iconButtonStyle}
                   >
                     <X size={14} />
@@ -666,8 +666,8 @@ export function PromptChipEditor({
                     color: "var(--pv-text-muted)",
                   }}
                 >
-                  仅识别顶层的英文/中文逗号、分号和换行；括号、引号、转义逗号与
-                  LoRA 标签内部保持完整。
+                  Only top-level commas, semicolons, and line breaks are recognized; parentheses, quotes, escaped commas, and
+                  LoRA tags remain intact.
                 </small>
               </div>
             ) : null}
@@ -685,7 +685,7 @@ export function PromptChipEditor({
         }}
       >
         {announcement ||
-          `${parsed.chips.length} 个片段 · 拖动或用上下按钮排序 · 原始 Prompt 始终可无损复制`}
+          `${parsed.chips.length} snippets · Drag or use arrow buttons to reorder · The source prompt always remains lossless`}
       </div>
     </div>
   );
