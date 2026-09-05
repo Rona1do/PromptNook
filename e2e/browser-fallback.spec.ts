@@ -3,7 +3,7 @@ import { expect, test } from "playwright/test";
 test("browser fallback supports the five destinations and a snippet creation journey", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
 
   await expect(page.getByText("Browser workspace")).toBeVisible();
   await expect(page.getByText("Your changes persist in this browser.")).toBeVisible();
@@ -92,7 +92,7 @@ test("browser fallback supports the five destinations and a snippet creation jou
 test("recipe resource search, responsive LoRA picker and empty parameters work together", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByRole("button", { name: "New recipe" }).click();
 
   const editor = page.getByRole("dialog");
@@ -170,7 +170,7 @@ test("recipe resource search, responsive LoRA picker and empty parameters work t
 test("browser workspace persists edits and downloads a ComfyUI workflow", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
   await page.getByRole("heading", { name: "Neon street in the rain" }).click();
 
   const editor = page.getByRole("dialog");
@@ -197,7 +197,7 @@ test("capture English documentation screenshots", async ({ page }) => {
     "Run with PROMPTNOOK_CAPTURE_SCREENSHOTS=1 to refresh documentation images",
   );
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.getByRole("heading", { level: 1, name: "Recipes" })).toBeVisible();
   await page.screenshot({ path: "docs/screenshots/recipes.png", fullPage: true });
 
