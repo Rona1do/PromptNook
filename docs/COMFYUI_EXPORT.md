@@ -1,6 +1,6 @@
 # ComfyUI workflow export
 
-PromptNook v0.2 exports an existing checkpoint-based recipe as an editable ComfyUI Workflow JSON 0.4 graph. The feature is intended as a reliable starting graph, not as a promise that every custom-node setup can be reconstructed automatically.
+PromptNook v0.2 exports an existing checkpoint-based recipe from either the browser workspace or Windows desktop app as an editable ComfyUI Workflow JSON 0.4 graph. The feature is intended as a reliable starting graph, not as a promise that every custom-node setup can be reconstructed automatically.
 
 ## Exported graph
 
@@ -28,7 +28,7 @@ The output is the editable workflow format used by ComfyUI's UI, not the separat
 
 ## Testing
 
-Rust tests verify the graph structure, links, relative resource references, LoRA chain, generation parameters, fixed/random seed behavior, offline warnings, and the unsupported diffusion-model boundary. Frontend tests verify desktop IPC arguments and the browser-demo explanation.
+Rust tests verify the desktop graph structure, links, relative resource references, LoRA chain, generation parameters, fixed/random seed behavior, offline warnings, and the unsupported diffusion-model boundary. Frontend and browser-flow tests verify an equivalent browser graph, persistence across reloads, real JSON downloads, desktop IPC arguments, and rejected diffusion-model recipes.
 
 If an exported core-node workflow fails to load, open a GitHub issue with the PromptNook version, ComfyUI version, recipe resource types, warnings shown at export, and the workflow JSON after removing any sensitive prompt text.
 

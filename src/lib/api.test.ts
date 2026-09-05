@@ -83,6 +83,7 @@ function makeTip(overrides: Partial<TipInput> = {}): TipInput {
 beforeEach(async () => {
   vi.resetModules();
   invokeMock.mockReset();
+  window.localStorage.clear();
   delete (
     window as Window & {
       __TAURI_INTERNALS__?: unknown;
@@ -126,7 +127,7 @@ describe("browser fallback bootstrap", () => {
     expect((await api.listRecipes())[0].title).not.toBe("不应写回内存");
   });
 
-  it("never hides a desktop IPC failure behind the volatile browser demo", async () => {
+  it("never hides a desktop IPC failure behind the browser workspace", async () => {
     (
       window as Window & {
         __TAURI_INTERNALS__?: unknown;
@@ -140,12 +141,28 @@ describe("browser fallback bootstrap", () => {
     expect(isDesktopRuntime()).toBe(true);
   });
 
-  it("exports ComfyUI workflow JSON through desktop IPC and explains the browser fallback", async () => {
-    await expect(api.exportComfyUiWorkflow("recipe-window")).resolves.toEqual({
-      path: "Browser demo: recipe-window.json",
-      warnings: ["Desktop storage is required to write a workflow file."],
+  it("downloads a real ComfyUI workflow in the browser and still uses desktop IPC", async () => {
+    const createObjectUrl = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:promptnook-workflow");
+    const revokeObjectUrl = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => undefined);
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+
+    await expect(api.exportComfyUiWorkflow("recipe-rain")).resolves.toEqual({
+      path: "neon-street-in-the-rain.comfyui.json",
+      warnings: [],
       format: "ComfyUI Workflow JSON 0.4",
     });
+    expect(createObjectUrl).toHaveBeenCalledOnce();
+    expect(click).toHaveBeenCalledOnce();
+
+    createObjectUrl.mockRestore();
+    revokeObjectUrl.mockRestore();
+    click.mockRestore();
 
     (
       window as Window & {
@@ -166,6 +183,19 @@ describe("browser fallback bootstrap", () => {
       recipeId: "recipe-window",
       targetPath: result.path,
     });
+  });
+
+  it("restores browser workspace changes after a reload", async () => {
+    await api.saveRecipe(makeRecipe({ title: "Persistent browser recipe" }));
+
+    vi.resetModules();
+    ({ api } = await import("./api"));
+
+    expect(
+      (await api.listRecipes()).some(
+        (recipe) => recipe.title === "Persistent browser recipe",
+      ),
+    ).toBe(true);
   });
 });
 

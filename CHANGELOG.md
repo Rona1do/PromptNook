@@ -2,6 +2,27 @@
 
 All notable changes will be documented here. The format follows Keep a Changelog, and the project intends to use Semantic Versioning after the first stable release.
 
+## [0.2.1-beta.1] - 2026-09-05
+
+### Added
+
+- Persistent browser-local storage for recipes, snippets, workspaces, settings, notes, resources, trash, and backup snapshots.
+- Real ComfyUI Workflow JSON 0.4 downloads from the browser workspace, using the same checkpoint, LoRA, prompt, and generation-parameter graph shape as the desktop exporter.
+- Browser export tests covering graph compatibility, unsupported diffusion-model recipes, file downloads, and persistence across reloads.
+- A short visual walkthrough showing the path from a saved recipe to a downloaded ComfyUI workflow.
+
+### Changed
+
+- Repositioned the repository around its concrete outcome: turning scattered prompt and model notes into editable ComfyUI workflows.
+- Replaced the temporary in-memory demo language with an honest browser-workspace experience; local folder scanning and verified backups remain clearly marked desktop-only.
+- Made ComfyUI export available in both browser and desktop recipe editors.
+
+### Known limitations
+
+- Browser data belongs to the current browser profile and can be removed when site data is cleared; users should treat it as a convenient trial workspace rather than a verified backup.
+- The browser sandbox cannot scan local model folders. That feature remains in the desktop application.
+- Official Windows binaries remain withheld until the trusted code-signing workflow is approved.
+
 ## [0.2.0-beta.1] - 2026-08-31
 
 ### Added

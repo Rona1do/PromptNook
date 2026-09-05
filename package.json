@@ -1,7 +1,7 @@
 {
   "name": "promptnook",
   "private": true,
-  "version": "0.2.0-beta.1",
+  "version": "0.2.1-beta.1",
   "description": "A local-first prompt library and studio for generative-image creators",
   "license": "MIT",
   "homepage": "https://github.com/Rona1do/PromptNook#readme",
