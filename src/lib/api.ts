@@ -35,6 +35,10 @@ import {
   normalizePromptModelId,
   promptModelOption,
 } from "./promptModels";
+import {
+  buildBrowserComfyWorkflow,
+  downloadBrowserWorkflow,
+} from "./comfyuiWorkflow";
 
 const now = new Date().toISOString();
 // Backend allows up to ~90s for one whole-prompt request; keep UI slightly above that.
@@ -425,6 +429,76 @@ const memory = {
   backups: [] as BackupSnapshot[],
 };
 
+const BROWSER_STORAGE_KEY = "promptnook.browser-workspace.v1";
+let browserMemoryLoaded = false;
+
+type BrowserMemorySnapshot = {
+  version: 1;
+  recipes: Recipe[];
+  snippets: Snippet[];
+  categories: Category[];
+  recipeTags: RecipeTag[];
+  resources: Resource[];
+  tips: Tip[];
+  settings: AppSettings;
+  modelDefaults: ModelPromptDefaults;
+  trash: TrashItem[];
+  backups: BackupSnapshot[];
+};
+
+function ensureBrowserMemoryLoaded() {
+  if (browserMemoryLoaded || isTauriRuntime()) return;
+  browserMemoryLoaded = true;
+  try {
+    const raw = window.localStorage.getItem(BROWSER_STORAGE_KEY);
+    if (!raw) return;
+    const snapshot = JSON.parse(raw) as Partial<BrowserMemorySnapshot>;
+    if (snapshot.version !== 1) return;
+    if (Array.isArray(snapshot.recipes)) memory.recipes = snapshot.recipes;
+    if (Array.isArray(snapshot.snippets)) memory.snippets = snapshot.snippets;
+    if (Array.isArray(snapshot.categories)) memory.categories = snapshot.categories;
+    if (Array.isArray(snapshot.recipeTags)) memory.recipeTags = snapshot.recipeTags;
+    if (Array.isArray(snapshot.resources)) memory.resources = snapshot.resources;
+    if (Array.isArray(snapshot.tips)) memory.tips = snapshot.tips;
+    if (snapshot.settings && typeof snapshot.settings === "object") {
+      memory.settings = {
+        ...structuredClone(initialSettings),
+        ...snapshot.settings,
+      };
+    }
+    if (snapshot.modelDefaults && typeof snapshot.modelDefaults === "object") {
+      memory.modelDefaults = snapshot.modelDefaults;
+    }
+    if (Array.isArray(snapshot.trash)) memory.trash = snapshot.trash;
+    if (Array.isArray(snapshot.backups)) memory.backups = snapshot.backups;
+    applyActiveModelDefaults();
+  } catch {
+    // Corrupt or blocked browser storage should fall back to the sample workspace.
+  }
+}
+
+function persistBrowserMemory() {
+  if (isTauriRuntime()) return;
+  try {
+    const snapshot: BrowserMemorySnapshot = {
+      version: 1,
+      recipes: memory.recipes,
+      snippets: memory.snippets,
+      categories: memory.categories,
+      recipeTags: memory.recipeTags,
+      resources: memory.resources,
+      tips: memory.tips,
+      settings: memory.settings,
+      modelDefaults: memory.modelDefaults,
+      trash: memory.trash,
+      backups: memory.backups,
+    };
+    window.localStorage.setItem(BROWSER_STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Private browsing or quota restrictions leave the in-memory session usable.
+  }
+}
+
 function activeModel(): string {
   return normalizePromptModelId(memory.settings.activePromptModel);
 }
@@ -470,10 +544,15 @@ async function call<T>(
   args: Record<string, unknown> | undefined,
   fallback: () => T | Promise<T>,
 ): Promise<T> {
-  if (!isTauriRuntime()) return fallback();
+  if (!isTauriRuntime()) {
+    ensureBrowserMemoryLoaded();
+    const result = await fallback();
+    persistBrowserMemory();
+    return result;
+  }
   // A desktop command failure must stay visible. Falling back to the volatile
-  // browser demo here could make the UI report a successful save that vanishes
-  // after restart.
+  // the browser workspace here could make the desktop UI report a successful
+  // save to the wrong storage boundary.
   return invoke<T>(command, args);
 }
 
@@ -531,8 +610,8 @@ export const api = {
   async healthCheck() {
     return call<HealthStatus>("health_check", undefined, () => ({
       status: "ok",
-      databasePath: "Browser demo memory",
-      vaultPath: "Browser demo memory",
+      databasePath: "Browser local storage",
+      vaultPath: "Browser local storage",
       schemaVersion: 1,
       recoveryMode: false,
     }));
@@ -1067,7 +1146,7 @@ export const api = {
   },
   async getAssetData(id: string) {
     return call<AssetData>("get_asset_data", { id }, () => {
-      throw new Error("Browser demo mode does not persist image objects");
+      throw new Error("The browser workspace does not persist image objects");
     });
   },
   async detachAsset(
@@ -1223,11 +1302,21 @@ export const api = {
     return call<ComfyWorkflowExportResult>(
       "export_comfyui_workflow",
       { recipeId, targetPath },
-      () => ({
-        path: `Browser demo: ${recipeId}.json`,
-        warnings: ["Desktop storage is required to write a workflow file."],
-        format: "ComfyUI Workflow JSON 0.4",
-      }),
+      () => {
+        const recipe = memory.recipes.find((item) => item.id === recipeId);
+        if (!recipe) throw new Error("Recipe not found");
+        const result = buildBrowserComfyWorkflow(
+          recipe,
+          memory.resources,
+          memory.settings,
+        );
+        downloadBrowserWorkflow(result);
+        return {
+          path: result.fileName,
+          warnings: result.warnings,
+          format: "ComfyUI Workflow JSON 0.4",
+        };
+      },
     );
   },
   async loadAll(): Promise<AppData> {

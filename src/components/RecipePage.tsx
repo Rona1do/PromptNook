@@ -885,12 +885,17 @@ export function RecipeEditor({
         .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
         .replace(/[. ]+$/g, "")
         .slice(0, 80) || "promptnook-recipe";
-      const targetPath = await saveFile({
-        defaultPath: `${fileStem}.comfyui.json`,
-        filters: [{ name: "ComfyUI Workflow JSON", extensions: ["json"] }],
-      });
-      if (!targetPath) return;
-      const result = await api.exportComfyUiWorkflow(recipe.id, targetPath);
+      const targetPath = isDesktopRuntime()
+        ? await saveFile({
+            defaultPath: `${fileStem}.comfyui.json`,
+            filters: [{ name: "ComfyUI Workflow JSON", extensions: ["json"] }],
+          })
+        : undefined;
+      if (isDesktopRuntime() && !targetPath) return;
+      const result = await api.exportComfyUiWorkflow(
+        recipe.id,
+        targetPath ?? undefined,
+      );
       const warning = result.warnings.length
         ? ` ${result.warnings.join(" ")}`
         : "";
@@ -969,16 +974,14 @@ export function RecipeEditor({
             )}
           </div>
           {recipe ? (
-            isDesktopRuntime() ? (
-              <Button
-                variant="ghost"
-                icon={<Download size={16} />}
-                disabled={exportingComfyUi}
-                onClick={() => void exportComfyUiWorkflow()}
-              >
-                {exportingComfyUi ? "Exporting…" : "Export ComfyUI workflow"}
-              </Button>
-            ) : null
+            <Button
+              variant="ghost"
+              icon={<Download size={16} />}
+              disabled={exportingComfyUi}
+              onClick={() => void exportComfyUiWorkflow()}
+            >
+              {exportingComfyUi ? "Exporting…" : "Export ComfyUI workflow"}
+            </Button>
           ) : null}
           {recipe ? (
             <Button

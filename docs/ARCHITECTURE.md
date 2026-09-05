@@ -20,7 +20,7 @@ React UI
 
 - `src/App.tsx` owns navigation, loading, refreshes, workspace switching, and top-level dialogs.
 - `src/components/` contains feature pages and shared editors.
-- `src/lib/api.ts` is the single frontend boundary for desktop commands. Outside Tauri it provides deterministic in-memory sample data.
+- `src/lib/api.ts` is the single frontend boundary for desktop commands. Outside Tauri it provides a browser-local workspace seeded with deterministic sample data.
 - `src/lib/promptModels.ts` normalizes arbitrary workspace IDs and supplies only a neutral `General` default.
 - `src/types.ts` defines the shared frontend data contracts.
 
@@ -47,6 +47,6 @@ Migrations are forward-only and transactional. If the live database cannot be op
 - Local prompt data and scanned paths are sensitive.
 - Translation providers are external unless the endpoint is local.
 - Imported packages, media metadata, and filesystem paths are untrusted input.
-- The browser demo is public sample content and never reads the desktop database.
+- The browser workspace stores structured data in that browser profile and never reads the desktop database. It cannot scan local folders or provide verified backups.
 
 See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](../SECURITY.md).

@@ -14,6 +14,8 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 ## 0.2 — ComfyUI export and international usability
 
 - [x] Complete the English-first interface migration.
+- [x] Persist the browser workspace locally so visitors can complete a real trial without installing the desktop app.
+- [x] Download checkpoint-based ComfyUI workflows directly from the browser workspace.
 - [x] Export checkpoint-based recipes as editable ComfyUI Workflow JSON 0.4 graphs.
 - [x] Preserve model, LoRA, prompt, and generation-parameter references in exported graphs.
 - [ ] Verify package and backup round trips across Windows machines.

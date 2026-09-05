@@ -646,9 +646,11 @@ function App() {
         </button>
         <div className="runtime-label">
           <span className={isDesktopRuntime() ? "runtime-dot online" : "runtime-dot"} />
-          {isDesktopRuntime() ? "Local desktop storage" : "Browser demo mode"}
+          {isDesktopRuntime() ? "Local desktop storage" : "Browser workspace"}
           <small style={{ display: "block", marginTop: 4, opacity: 0.75 }}>
-            Local-first · open source
+            {isDesktopRuntime()
+              ? "Local-first · open source"
+              : "Saved in this browser · no upload"}
           </small>
         </div>
       </aside>
@@ -752,6 +754,16 @@ function App() {
         </header>
 
         <div className="page-container">
+          {!isDesktopRuntime() ? (
+            <div className="browser-workspace-banner" role="status">
+              <CheckCircle2 size={18} />
+              <p>
+                <strong>Your changes persist in this browser.</strong>{" "}
+                Create and edit recipes, then download a real ComfyUI workflow.
+                Local folder scanning and verified backups remain desktop-only.
+              </p>
+            </div>
+          ) : null}
           {health?.recoveryMode ? (
             <div className="recovery-banner" role="alert">
               <span><ShieldAlert size={21} /></span>

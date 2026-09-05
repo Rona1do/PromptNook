@@ -5,7 +5,8 @@ test("browser fallback supports the five destinations and a snippet creation jou
 }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Browser demo mode")).toBeVisible();
+  await expect(page.getByText("Browser workspace")).toBeVisible();
+  await expect(page.getByText("Your changes persist in this browser.")).toBeVisible();
   const destinations = [
     ["Recipes", "Recipes"],
     ["Snippets", "Snippets"],
@@ -164,6 +165,30 @@ test("recipe resource search, responsive LoRA picker and empty parameters work t
     page.getByRole("heading", { name: "DreamShaper XL Turbo" }),
   ).toHaveCount(0);
   await expect(page.getByText("Show 1 / 5")).toBeVisible();
+});
+
+test("browser workspace persists edits and downloads a ComfyUI workflow", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("heading", { name: "Neon street in the rain" }).click();
+
+  const editor = page.getByRole("dialog");
+  await expect(editor.getByRole("button", { name: "Export ComfyUI workflow" })).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await editor.getByRole("button", { name: "Export ComfyUI workflow" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe(
+    "neon-street-in-the-rain.comfyui.json",
+  );
+
+  await editor.getByRole("button", { name: "Prompt content" }).click();
+  await editor.getByLabel("Title (optional)").fill("Persistent neon recipe");
+  await editor.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Persistent neon recipe" })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Persistent neon recipe" })).toBeVisible();
 });
 
 test("capture English documentation screenshots", async ({ page }) => {
