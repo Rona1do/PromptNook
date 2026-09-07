@@ -10,7 +10,7 @@ Stable Windows releases require trusted signatures. Preview releases may include
 - Signing credentials must remain in a managed signing service or hardware-backed store; they are never committed to the repository.
 - Every signing request requires explicit approval by the maintainer.
 
-The preferred route for this open-source project is a SignPath Foundation subscription. Approval has not been verified. Only after acceptance and successful signing should releases state: **Free code signing provided by SignPath.io, certificate by SignPath Foundation.** Until then, source archives and clearly labelled unsigned previews may be distributed.
+The SignPath Foundation application was declined because the project had insufficient public adoption and trust signals. Microsoft Store MSIX distribution is now the primary planned signed channel; see [Store preparation](MICROSOFT_STORE.md). Microsoft signs accepted Store packages, not the separate NSIS EXE distributed on GitHub. Store certification is still pending submission. Source archives and clearly labelled unsigned previews may be distributed in the meantime. Do not claim SignPath sponsorship or signing.
 
 ## Team roles
 
