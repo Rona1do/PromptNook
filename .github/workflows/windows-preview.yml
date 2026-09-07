@@ -1,0 +1,41 @@
+name: Build Windows preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run check
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - run: npm run tauri:build
+      - name: Prepare explicitly unsigned assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path preview-assets | Out-Null
+          Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | ForEach-Object {
+            $assetName = $_.BaseName + '-UNSIGNED.exe'
+            Copy-Item -LiteralPath $_.FullName -Destination (Join-Path preview-assets $assetName)
+          }
+          Get-ChildItem preview-assets/*.exe | ForEach-Object {
+            "$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
+          } | Set-Content preview-assets/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-unsigned-preview
+          path: preview-assets/
+          if-no-files-found: error

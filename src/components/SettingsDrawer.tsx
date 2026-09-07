@@ -416,6 +416,12 @@ export function SettingsDrawer({
             <div className="settings-section">
               <div className="section-heading">
                 <div>
+                  <h3>Interface language: English</h3>
+                  <p>The interface currently uses English. A UI language switch is not available yet. Your prompts and optional translations can use any language.</p>
+                </div>
+              </div>
+              <div className="section-heading">
+                <div>
                   <h3>Prompt workspaces</h3>
                   <p>
                     Create a separate recipe and snippet library for every model
@@ -573,8 +579,8 @@ export function SettingsDrawer({
             <div className="settings-section">
               <div className="section-heading">
                 <div>
-                  <h3>Translation</h3>
-                  <p>Choose any target language. A glossary runs before an optional local or compatible service.</p>
+                  <h3>Prompt translation</h3>
+                  <p>Translate prompt content, not the interface. Choose any target language supported by your desktop translation provider. Online and local translation services require the desktop app; the browser workspace does not call them.</p>
                 </div>
                 <Languages size={21} />
               </div>

@@ -46,7 +46,7 @@ describe("PromptNook browser fallback smoke", () => {
     expect(searchDialog).toBeInTheDocument();
     fireEvent.change(
       screen.getByPlaceholderText("Search prompts, translations, categories, or models…"),
-      { target: { value: "镜头" } },
+      { target: { value: "V-sign" } },
     );
 
     expect(

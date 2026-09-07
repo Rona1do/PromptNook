@@ -381,6 +381,7 @@ describe("search and translation fallback", () => {
   it("searches translated recipe text, snippet translations/categories, and tips", async () => {
     await api.saveSnippet(makeSnippet());
 
+    await api.saveRecipe({ ...makeRecipe(), positiveTranslation: "清晨柔光" });
     const recipeResults = await api.searchAll("清晨柔光");
     const translationResults = await api.searchAll("日落时");
     const categoryResults = await api.searchAll("Subject");
@@ -389,7 +390,7 @@ describe("search and translation fallback", () => {
     expect(recipeResults).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "recipe-window",
+          id: "recipe-browser-test",
           entityType: "recipe",
         }),
       ]),
@@ -421,36 +422,11 @@ describe("search and translation fallback", () => {
     expect(await api.searchAll("   ")).toEqual([]);
   });
 
-  it("uses the built-in dictionary, preserves delimiters, and reports uncached results", async () => {
-    vi.useFakeTimers();
-    const source =
-      "masterpiece, best quality，portrait;soft lighting\nlooking at the camera";
-
-    const firstPromise = api.translateText({ text: source });
-    await vi.advanceTimersByTimeAsync(350);
-    const first = await firstPromise;
-
-    expect(first).toEqual({
-      text: "杰作,最佳质量，人像;柔和光线\n看向镜头",
-      cached: false,
-    });
-
-    const repeatedPromise = api.translateText({ text: source });
-    await vi.advanceTimersByTimeAsync(350);
-    const repeated = await repeatedPromise;
-
-    expect(repeated.text).toBe(first.text);
-    expect(repeated.cached).toBe(false);
-
-    const unknownPromise = api.translateText({
-      text: "an untranslated browser fallback phrase",
-    });
-    await vi.advanceTimersByTimeAsync(350);
-
-    await expect(unknownPromise).resolves.toEqual({
-      text: "Pending translation · Configure a translation service in Settings",
-      cached: false,
-    });
+  it("rejects unsupported browser translation instead of returning Chinese or placeholder content", async () => {
+    await expect(api.translateText({ text: "masterpiece, portrait", targetLanguage: "en" }))
+      .rejects.toThrow("Prompt translation requires the desktop app");
+    await expect(api.translateText({ text: "a landscape", targetLanguage: "fr" }))
+      .rejects.toThrow("Prompt translation requires the desktop app");
   });
 });
 
