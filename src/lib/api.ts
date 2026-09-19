@@ -148,7 +148,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-vsign",
     text: "She made a V-sign at the camera",
-    translation: "她对着镜头比出 V 字手势",
+    translation: "",
     notes: "Works best for half-body portraits with hands away from the lens.",
     categoryIds: ["cat-subject", "cat-action"],
     favorite: true,
@@ -161,7 +161,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-window",
     text: "soft morning light through the window",
-    translation: "清晨柔光透过窗户",
+    translation: "",
     notes: "",
     categoryIds: ["cat-light", "cat-scene"],
     favorite: true,
@@ -174,7 +174,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-eye",
     text: "looking directly at the camera",
-    translation: "直视镜头",
+    translation: "",
     notes: "",
     categoryIds: ["cat-subject", "cat-camera"],
     favorite: false,
@@ -187,7 +187,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-dress",
     text: "wearing an ivory linen dress",
-    translation: "身穿象牙白亚麻连衣裙",
+    translation: "",
     notes: "",
     categoryIds: ["cat-appearance"],
     favorite: false,
@@ -200,7 +200,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-film",
     text: "cinematic film still",
-    translation: "电影胶片剧照",
+    translation: "",
     notes: "Pairs well with film grain.",
     categoryIds: ["cat-style"],
     favorite: true,
@@ -213,7 +213,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-quality",
     text: "masterpiece, best quality, highly detailed",
-    translation: "杰作、最佳质量、高度细节",
+    translation: "",
     notes: "",
     categoryIds: ["cat-quality"],
     favorite: false,
@@ -226,7 +226,7 @@ const starterSnippets: Snippet[] = [
   {
     id: "snippet-negative",
     text: "blurry, deformed hands, extra fingers",
-    translation: "模糊、手部变形、多余手指",
+    translation: "",
     notes: "",
     categoryIds: ["cat-negative"],
     favorite: false,
@@ -246,10 +246,9 @@ const starterRecipes: Recipe[] = [
     modality: "text_to_image",
     positivePrompt:
       "masterpiece, best quality, cinematic film still, a young woman wearing an ivory linen dress, (soft morning light through the window:1.2), looking directly at the camera",
-    positiveTranslation:
-      "杰作，最佳质量，电影胶片剧照，一位身穿象牙白亚麻连衣裙的年轻女性，清晨柔光透过窗户，直视镜头",
+    positiveTranslation: "",
     negativePrompt: "blurry, deformed hands, extra fingers, watermark",
-    negativeTranslation: "模糊，手部变形，多余手指，水印",
+    negativeTranslation: "",
     modelId: "model-flux",
     modelName: "FLUX.1-dev-fp8",
     loras: [
@@ -289,9 +288,9 @@ const starterRecipes: Recipe[] = [
     modality: "text_to_image",
     positivePrompt:
       "cinematic night street, neon reflections on wet pavement, lone figure holding a transparent umbrella, teal and amber light",
-    positiveTranslation: "电影感夜晚街道，湿润路面的霓虹倒影，独自撑着透明雨伞的人物，青橙色灯光",
+    positiveTranslation: "",
     negativePrompt: "daylight, low contrast, text",
-    negativeTranslation: "日光、低对比度、文字",
+    negativeTranslation: "",
     modelId: "model-sdxl",
     modelName: "DreamShaper XL Turbo",
     loras: [],
@@ -321,9 +320,9 @@ const starterRecipes: Recipe[] = [
     modality: "text_to_image",
     positivePrompt:
       "luxury perfume bottle on travertine pedestal, warm directional sunlight, long geometric shadows, editorial product photography, clean beige background",
-    positiveTranslation: "洞石台座上的奢华香水瓶，温暖的方向性阳光，长几何阴影，编辑风产品摄影，干净米色背景",
+    positiveTranslation: "",
     negativePrompt: "people, clutter, label errors, warped glass",
-    negativeTranslation: "人物、杂乱、标签错误、玻璃变形",
+    negativeTranslation: "",
     modelId: "model-sdxl",
     modelName: "DreamShaper XL Turbo",
     loras: [],
@@ -1166,27 +1165,7 @@ export const api = {
         "translate_text",
         { request },
         async () => {
-          await new Promise((resolve) => window.setTimeout(resolve, 350));
-          const dictionary: Record<string, string> = {
-            "best quality": "最佳质量",
-            masterpiece: "杰作",
-            "highly detailed": "高度细节",
-            "cinematic film still": "电影胶片剧照",
-            "soft lighting": "柔和光线",
-            portrait: "人像",
-            "looking at the camera": "看向镜头",
-          };
-          const translated = request.text
-            .split(/([,，;；\n])/)
-            .map((part) => dictionary[part.trim().toLowerCase()] ?? part)
-            .join("");
-          return {
-            text:
-              translated === request.text
-                ? "Pending translation · Configure a translation service in Settings"
-                : translated,
-            cached: false,
-          };
+          throw new Error("Prompt translation requires the desktop app with a configured translation provider. Your original prompt has not been translated.");
         },
       ),
       TRANSLATION_UI_TIMEOUT_MS,

@@ -2,6 +2,19 @@
 
 All notable changes will be documented here. The format follows Keep a Changelog, and the project intends to use Semantic Versioning after the first stable release.
 
+## [0.2.2-beta.1] - 2026-09-07
+
+### Fixed
+
+- New browser workspaces start with English sample content without prefilled Chinese translations. Existing saved content is preserved.
+- Settings explicitly identifies English as the current interface language and distinguishes prompt translation from UI localization.
+- Browser translation now reports that a desktop provider is required instead of returning fixed Chinese dictionary results or placeholder text as a translation.
+
+### Distribution
+
+- Windows preview packages are unsigned. Signing approval remains pending; an unsigned package must not be described as signed or guaranteed free of security warnings.
+- There is no interface language switch yet. Checkpoint-based ComfyUI export is supported; FLUX and arbitrary custom-node graphs remain outside this release.
+
 ## [0.2.1-beta.1] - 2026-09-05
 
 ### Added

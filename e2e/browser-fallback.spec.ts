@@ -85,7 +85,7 @@ test("browser fallback supports the five destinations and a snippet creation jou
     "gemini-3.1-flash-lite",
   );
   await settings.getByRole("button", { name: "Test translation" }).click();
-  await expect(settings.getByText(/Connection successful.*电影胶片剧照/i)).toBeVisible();
+  await expect(settings.getByText(/Prompt translation requires the desktop app/)).toBeVisible();
   await expect(settings.getByRole("button", { name: "Test translation" })).toBeEnabled();
 });
 
