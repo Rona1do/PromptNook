@@ -1,23 +1,34 @@
 <div align="center">
   <img src="public/promptnook-icon.png" alt="PromptNook icon" width="128" />
   <h1>PromptNook</h1>
-  <p><strong>From scattered prompts to editable ComfyUI workflows.</strong></p>
-  <p>Organize prompt recipes, checkpoints, LoRAs, trigger words, and generation settings in one private, local-first workspace.</p>
+  <p><strong>A local-first recipe library for ComfyUI creators.</strong></p>
+  <p>Keep prompts, checkpoints, ordered LoRAs, trigger words, and generation settings together — then export an editable workflow.</p>
 
   [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
+  [![Preview release](https://img.shields.io/github/v/release/Rona1do/PromptNook?include_prereleases&label=preview)](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)
   [![License: MIT](https://img.shields.io/badge/License-MIT-5d5fef.svg)](LICENSE)
-  [![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB.svg)](https://tauri.app/)
 
-  **[Open the browser workspace](https://rona1do.github.io/PromptNook/)** ·
-  [Releases](https://github.com/Rona1do/PromptNook/releases) ·
+  **[Try the live browser demo →](https://rona1do.github.io/PromptNook/)** ·
+  **[Download the Windows preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)** ·
   [ComfyUI export details](docs/COMFYUI_EXPORT.md)
 </div>
 
-> **Try the complete browser workflow now.** Changes are saved in your browser, never uploaded, and checkpoint-based recipes can be downloaded as real ComfyUI Workflow JSON 0.4 files. The browser workspace can be backed up and restored with a validated JSON file; folder scanning and verified desktop snapshots remain desktop-only.
+> Built for people whose successful generations are scattered across text files, PNG metadata, model folders, and memory. PromptNook is a standalone library and workflow companion—not a prompt generator, image generator, or ComfyUI custom node.
 
 ![PromptNook to ComfyUI workflow demo](docs/promptnook-comfyui-demo.gif)
 
 [简体中文](README.zh-CN.md)
+
+## Choose how to try it
+
+| | Browser workspace | Windows desktop |
+| --- | --- | --- |
+| Best for | Trying the complete recipe-to-workflow flow | Managing a real local model library |
+| Setup | No account or installation | Download the clearly marked unsigned preview |
+| Included | Persistent recipes, snippets, Studio, JSON backup, ComfyUI export | Everything in the browser workspace, plus folder scanning, SQLite, credential protection, and verified portable backups |
+| Data | Stays in this browser | Stays on your computer |
+
+The browser workspace is not a static mockup. You can edit the starter recipes, download a real ComfyUI Workflow JSON 0.4 file, close the tab, and return to your saved work later.
 
 ## Try it in 60 seconds
 
@@ -33,6 +44,13 @@ Successful generations are more than prompt text. They also depend on the checkp
 
 Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and does not upload your library. Unlike a plain text file, it preserves the resources and settings needed to reproduce a result.
 
+### What makes it different
+
+- **Recipes, not isolated prompt text** — keep the positive and negative prompts, checkpoint, ordered LoRAs, seed, sampler, scheduler, dimensions, CFG, notes, and revision history together.
+- **Use the model files you already have** — the Windows app scans configured folders and records availability instead of making you rebuild a catalog by hand.
+- **Leave with a workflow** — export a core-node ComfyUI graph that is ready to inspect and edit, rather than copying fields one at a time.
+- **Private by default** — no PromptNook account, analytics, hosted library, or automatic prompt upload.
+
 ## Highlights
 
 - **Working browser workspace** — create and edit recipes and snippets with browser-local persistence, then download checkpoint-based ComfyUI workflows without installing PromptNook.
@@ -47,15 +65,12 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 
 ## Screenshots
 
-<details>
-  <summary>Prompt library, Studio, and local model catalog</summary>
+<p align="center">
+  <img src="docs/screenshots/recipes.png" alt="PromptNook recipe library" width="49%" />
+  <img src="docs/screenshots/models-and-loras.png" alt="PromptNook local model and LoRA catalog" width="49%" />
+</p>
 
-  ![Prompt recipe library](docs/screenshots/recipes.png)
-
-  ![Prompt Studio](docs/screenshots/studio.png)
-
-  ![Local model and LoRA catalog](docs/screenshots/models-and-loras.png)
-</details>
+![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
 The screenshots use repository sample data. They do not contain a maintainer's private library or filesystem paths.
 
@@ -63,17 +78,17 @@ The screenshots use repository sample data. They do not contain a maintainer's p
 
 English is the repository and interface language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic: users can enter any target supported by their configured translation provider.
 
-The original private prototype's primary Chinese-only interface has been migrated for v0.2. A resource-based Simplified Chinese UI locale and localized low-level diagnostics remain on the roadmap; the project will not claim generic “all-language UI” support before each locale is complete and reviewable.
+The current interface and starter workspace are English. Prompt content can use any language. A complete Simplified Chinese UI locale and localized low-level diagnostics remain on the roadmap; **Prompt translation** translates prompt content and does not change the interface language.
 
 ## ComfyUI export
 
 Open an existing recipe in the browser workspace or Windows desktop app and choose **Export ComfyUI workflow**. PromptNook writes an editable ComfyUI Workflow JSON 0.4 file and reports any offline or unresolved model references. The current graph uses ComfyUI core nodes and supports checkpoint-based text-to-image recipes; FLUX/diffusion-model graphs are deliberately deferred to a dedicated template. See [the export design and compatibility notes](docs/COMFYUI_EXPORT.md).
 
-## Platform status
+## Platform and release status
 
 The desktop app is currently developed and tested on **Windows 10/11**. The stack is cross-platform, but macOS and Linux packaging is not yet verified. Do not present those platforms as supported until their release workflows are tested.
 
-The current Windows prerelease includes an installer whose asset name and release notes explicitly mark it **UNSIGNED**. It may trigger Windows reputation or publisher warnings. A formally signed stable release still depends on an approved trusted code-signing workflow. Source releases remain available for review and local builds; see the [code signing policy](docs/CODE_SIGNING.md).
+The current Windows prerelease includes an installer whose asset name and release notes explicitly mark it **UNSIGNED**. It may trigger Windows reputation or publisher warnings. Review the release notes and checksum; do not disable Windows security protections. A formally signed stable release still depends on a trusted code-signing workflow. Source releases remain available for review and local builds; see the [code signing policy](docs/CODE_SIGNING.md).
 
 ## Quick start
 
@@ -117,9 +132,11 @@ On Windows, PromptNook stores its desktop data under `%LOCALAPPDATA%\PromptNook\
 
 ## Contributing
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and issues labeled `good first issue`. By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should be reported privately using [SECURITY.md](SECURITY.md).
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and issues labeled [`help wanted`](https://github.com/Rona1do/PromptNook/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22). By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should be reported privately using [SECURITY.md](SECURITY.md).
 
 Questions, workflow ideas, and early feedback are welcome in [GitHub Discussions](https://github.com/Rona1do/PromptNook/discussions). Please use [Issues](https://github.com/Rona1do/PromptNook/issues) for reproducible bugs and scoped feature requests.
+
+If PromptNook solves a workflow problem for you, a GitHub star helps other ComfyUI users discover it.
 
 ## License
 

@@ -21,7 +21,7 @@ This is a reusable verification checklist, not a statement of current release st
 - [ ] Smoke-test install, launch, backup, restore, export, import, upgrade, and uninstall.
 - [ ] Verify installer publisher/signing status and document any unsigned-build warning.
 - [ ] Publish SHA-256 checksums.
-- [x] Mark the release as preview while interface localization and platform verification remain incomplete.
+- [x] Mark the release as preview while trusted signing and broader platform verification remain incomplete.
 
 ## After launch
 

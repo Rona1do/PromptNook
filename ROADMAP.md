@@ -9,7 +9,8 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 - [x] Remove content-specific and adult-oriented default presets.
 - [x] Make translation targets configurable.
 - [x] Add tests, CI, security policy, contribution guide, and bilingual documentation.
-- [ ] Publish the first signed Windows installer and checksums.
+- [x] Publish an explicitly labeled unsigned Windows preview installer and checksums.
+- [ ] Establish a trusted code-signing process for a formally signed Windows release.
 
 ## 0.2 — ComfyUI export and international usability
 

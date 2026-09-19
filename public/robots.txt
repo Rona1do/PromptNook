@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://rona1do.github.io/PromptNook/sitemap.xml

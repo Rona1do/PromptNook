@@ -33,7 +33,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 - Model and workspace names must remain user-configurable.
 - Avoid content-specific presets in the default dataset.
 - Preserve user data and provide a migration path for schema changes.
-- Keep the browser fallback deterministic and clearly labeled as volatile.
+- Keep the browser workspace deterministic, backward-compatible, and explicit about browser-local persistence and backup limits.
 - User-facing strings should move through the localization layer once the i18n milestone is merged.
 
 ## Commit and pull request style

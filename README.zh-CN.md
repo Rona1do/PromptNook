@@ -1,19 +1,30 @@
 <div align="center">
   <img src="public/promptnook-icon.png" alt="PromptNook 图标" width="128" />
   <h1>PromptNook</h1>
-  <p><strong>把散落的 Prompt 变成可编辑的 ComfyUI 工作流。</strong></p>
-  <p>在一个私密、本地优先的工作区中管理 Prompt 配方、模型、LoRA、触发词和生成参数。</p>
+  <p><strong>为 ComfyUI 创作者设计的本地优先配方库。</strong></p>
+  <p>把 Prompt、checkpoint、按顺序加载的 LoRA、触发词和生成参数放在一起，再导出可编辑工作流。</p>
 
-  **[立即打开浏览器工作区](https://rona1do.github.io/PromptNook/)** ·
-  [版本列表](https://github.com/Rona1do/PromptNook/releases) ·
+  **[立即体验浏览器 Demo →](https://rona1do.github.io/PromptNook/)** ·
+  **[下载 Windows 预览版](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)** ·
   [ComfyUI 导出说明](docs/COMFYUI_EXPORT.md)
 </div>
 
 [English](README.md)
 
-> **现在就可以完成一次真实流程。** 浏览器工作区会把修改保存在当前浏览器中，不上传数据，并能直接下载真正的 ComfyUI Workflow JSON 0.4。浏览器工作区支持导出和校验恢复 JSON 备份；扫描本地文件夹与桌面端完整性快照仍属于桌面版功能。
+> 如果你成功出图所需的信息散落在文本文件、PNG 元数据、模型目录和记忆里，PromptNook 就是为这个问题设计的。它是独立的资料库和工作流伴侣，不是 Prompt 生成器、出图工具或 ComfyUI 自定义节点。
 
 ![PromptNook 导出到 ComfyUI 的演示](docs/promptnook-comfyui-demo.gif)
+
+## 选择体验方式
+
+| | 浏览器工作区 | Windows 桌面版 |
+| --- | --- | --- |
+| 适合 | 体验从配方到工作流的完整流程 | 管理真实的本地模型资料库 |
+| 开始方式 | 无需安装或注册 | 下载明确标注为 unsigned 的预览版 |
+| 功能 | 持久化配方、片段、Studio、JSON 备份、ComfyUI 导出 | 浏览器版全部功能，以及目录扫描、SQLite、凭据保护和可迁移校验备份 |
+| 数据位置 | 保存在当前浏览器 | 保存在你的电脑 |
+
+浏览器版不是静态样品。你可以编辑 starter recipes、下载真实的 ComfyUI Workflow JSON 0.4，关闭页面后再回来继续。
 
 ## 60 秒上手
 
@@ -44,21 +55,18 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 ## 界面截图
 
-<details>
-  <summary>Prompt 资料库、创作台与本地模型目录</summary>
+<p align="center">
+  <img src="docs/screenshots/recipes.png" alt="PromptNook Prompt 配方库" width="49%" />
+  <img src="docs/screenshots/models-and-loras.png" alt="PromptNook 本地模型与 LoRA 目录" width="49%" />
+</p>
 
-  ![Prompt 成品库](docs/screenshots/recipes.png)
-
-  ![Prompt 创作台](docs/screenshots/studio.png)
-
-  ![本地模型与 LoRA 目录](docs/screenshots/models-and-loras.png)
-</details>
+![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
 截图使用仓库自带的示例数据，不包含维护者的私人资料库或个人文件路径。
 
 ## 语言策略
 
-仓库和软件主要界面以英文为主，并保留完整中文说明。Prompt 内容和翻译目标本身不限制语言；v0.2 已迁移私人原型遗留的主要中文界面文案，少量底层 Rust 诊断信息仍列在后续本地化计划中。完整的简体中文 UI 仍需先迁入可审阅的本地化资源后再提供，不会在此之前笼统宣称“支持所有界面语言”。具体见 [ROADMAP.md](ROADMAP.md)。
+当前界面和 starter workspace 为英文，Prompt 内容可以使用任意语言。完整的简体中文 UI 和底层诊断信息本地化仍在路线图中；**Prompt translation** 只翻译 Prompt 内容，不会切换界面语言。具体见 [ROADMAP.md](ROADMAP.md)。
 
 ## ComfyUI 导出
 
@@ -106,6 +114,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)、[ROADMAP.md](ROADMAP.md)、[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) 和 [SECURITY.md](SECURITY.md)。
 
 使用场景、工作流想法和早期反馈欢迎发布到 [GitHub Discussions](https://github.com/Rona1do/PromptNook/discussions)；可复现的问题和范围明确的功能建议请提交到 [Issues](https://github.com/Rona1do/PromptNook/issues)。
+
+如果 PromptNook 解决了你的实际工作流问题，欢迎点一个 GitHub Star，帮助其他 ComfyUI 用户发现它。
 
 ## 许可证
 

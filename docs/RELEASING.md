@@ -13,7 +13,7 @@
 
 ## Prereleases
 
-Until trusted Windows signing is approved, maintainers may publish source-only prereleases or attach clearly labelled unsigned preview installers. The `0.2.2-beta.1` release uses the latter path. Include `UNSIGNED` in the installer asset name, provide SHA-256 checksums, disclose the signature status in release notes, link to the browser workspace, and list known compatibility boundaries. Do not ask users to disable antivirus or other security protections. The manual Windows preview workflow produces an installer and checksum artifact without automatically publishing it.
+Until trusted Windows signing is approved, maintainers may publish source-only prereleases or attach clearly labelled unsigned preview installers. Current `0.2.x` prereleases use the latter path. Include `UNSIGNED` in the installer asset name, provide SHA-256 checksums, disclose the signature status in release notes, link to the browser workspace, and list known compatibility boundaries. Do not ask users to disable antivirus or other security protections. The manual Windows preview workflow produces an installer and checksum artifact without automatically publishing it.
 
 ## Release notes
 

@@ -6,7 +6,7 @@ PromptNook is a Tauri 2 desktop application with a React/TypeScript interface an
 
 ```text
 React UI
-  ├─ browser fallback (volatile sample data)
+  ├─ browser workspace (browser-local persistence and versioned JSON backup)
   └─ typed Tauri commands
        ├─ repository and search
        ├─ SQLite migrations and recovery mode
@@ -24,7 +24,7 @@ React UI
 - `src/lib/promptModels.ts` normalizes arbitrary workspace IDs and supplies only a neutral `General` default.
 - `src/types.ts` defines the shared frontend data contracts.
 
-The browser fallback is a demo and test harness. It must not imply persistence or silently hide a failing Tauri command.
+The browser workspace is both a usable demo and a test harness. It persists structured data in the current browser profile, preserves unsupported stored versions instead of overwriting them, and must never silently hide a failing Tauri command.
 
 ## Desktop backend
 
