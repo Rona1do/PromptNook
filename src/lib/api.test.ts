@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
+  AppSettings,
   RecipeInput,
   SnippetInput,
   TipInput,
@@ -19,6 +20,8 @@ type BrowserApi = typeof import("./api").api;
 let api: BrowserApi;
 let isDesktopRuntime: typeof import("./api").isDesktopRuntime;
 let withTimeout: typeof import("./api").withTimeout;
+let serializeBrowserWorkspaceBackup: typeof import("./api").serializeBrowserWorkspaceBackup;
+let validateBrowserWorkspaceBackup: typeof import("./api").validateBrowserWorkspaceBackup;
 
 function makeRecipe(
   overrides: Partial<RecipeInput> = {},
@@ -90,7 +93,13 @@ beforeEach(async () => {
     }
   ).__TAURI_INTERNALS__;
 
-  ({ api, isDesktopRuntime, withTimeout } = await import("./api"));
+  ({
+    api,
+    isDesktopRuntime,
+    serializeBrowserWorkspaceBackup,
+    validateBrowserWorkspaceBackup,
+    withTimeout,
+  } = await import("./api"));
 });
 
 afterEach(() => {
@@ -194,6 +203,101 @@ describe("browser fallback bootstrap", () => {
     expect(
       (await api.listRecipes()).some(
         (recipe) => recipe.title === "Persistent browser recipe",
+      ),
+    ).toBe(true);
+  });
+
+  it("preserves an unknown stored workspace version instead of overwriting it", async () => {
+    const storageKey = "promptnook.browser-workspace.v1";
+    const unknownWorkspace = JSON.stringify({
+      version: 99,
+      recipes: [{ id: "future-recipe", title: "Keep me" }],
+    });
+    window.localStorage.setItem(storageKey, unknownWorkspace);
+
+    vi.resetModules();
+    ({ api } = await import("./api"));
+    await api.loadAll();
+
+    expect(window.localStorage.getItem(storageKey)).toBe(unknownWorkspace);
+  });
+});
+
+describe("browser workspace backup, restore, and reset", () => {
+  it("serializes a versioned workspace without translation credentials", async () => {
+    await api.saveRecipe(makeRecipe({ title: "Backup marker" }));
+    await api.saveSettings({
+      translationProvider: "openai",
+      translationEndpoint: "https://example.test/v1",
+      translationModel: "example-model",
+      apiKey: "must-never-be-exported",
+    } as Partial<AppSettings> & { apiKey: string });
+
+    const json = serializeBrowserWorkspaceBackup();
+    const backup = validateBrowserWorkspaceBackup(json);
+
+    expect(backup).toMatchObject({
+      format: "promptnook-browser-workspace",
+      version: 1,
+      exportedAt: expect.any(String),
+    });
+    expect(backup.recipes.some((recipe) => recipe.title === "Backup marker")).toBe(
+      true,
+    );
+    expect(json).not.toContain("must-never-be-exported");
+    expect(json).not.toContain('"apiKey"');
+  });
+
+  it("rejects malformed files, missing fields, and unsupported versions", () => {
+    expect(() => validateBrowserWorkspaceBackup("not json")).toThrow(
+      "not valid JSON",
+    );
+    expect(() =>
+      validateBrowserWorkspaceBackup(
+        JSON.stringify({
+          format: "promptnook-browser-workspace",
+          version: 1,
+        }),
+      ),
+    ).toThrow("missing required fields");
+
+    const futureBackup = JSON.parse(serializeBrowserWorkspaceBackup()) as {
+      version: number;
+    };
+    futureBackup.version = 2;
+    expect(() =>
+      validateBrowserWorkspaceBackup(JSON.stringify(futureBackup)),
+    ).toThrow("Unsupported browser workspace backup version: 2");
+
+    const malformedEntity = JSON.parse(serializeBrowserWorkspaceBackup()) as {
+      recipes: Array<{ title?: string }>;
+    };
+    delete malformedEntity.recipes[0].title;
+    expect(() =>
+      validateBrowserWorkspaceBackup(JSON.stringify(malformedEntity)),
+    ).toThrow("contains invalid data");
+  });
+
+  it("round-trips a backup through the current English starter reset", async () => {
+    await api.saveRecipe(makeRecipe({ title: "Restore this recipe" }));
+    const backup = serializeBrowserWorkspaceBackup();
+
+    await api.resetBrowserWorkspace();
+    const resetData = await api.loadAll();
+    expect(
+      resetData.recipes.some(
+        (recipe) => recipe.title === "Restore this recipe",
+      ),
+    ).toBe(false);
+    expect(resetData.recipes.map((recipe) => recipe.title)).toContain(
+      "Neon street in the rain",
+    );
+    expect(JSON.stringify(resetData)).not.toMatch(/[\u4e00-\u9fff]/u);
+
+    await api.restoreBrowserWorkspace(backup);
+    expect(
+      (await api.listRecipes()).some(
+        (recipe) => recipe.title === "Restore this recipe",
       ),
     ).toBe(true);
   });

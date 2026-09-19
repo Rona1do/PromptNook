@@ -2,7 +2,18 @@
 
 All notable changes will be documented here. The format follows Keep a Changelog, and the project intends to use Semantic Versioning after the first stable release.
 
-## [0.2.2-beta.1] - 2026-09-07
+## [Unreleased]
+
+### Added
+
+- Browser workspace backup, validated restore, and confirmed reset to the current English starter workspace.
+
+### Fixed
+
+- Browser workspace exports omit translation credentials, and unsupported stored workspace versions are preserved instead of being overwritten during startup.
+- Current documentation now reflects the published, clearly labelled `UNSIGNED` Windows prerelease installer while keeping trusted signing as a requirement for stable releases.
+
+## [0.2.2-beta.1] - 2026-09-19
 
 ### Fixed
 

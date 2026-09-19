@@ -16,6 +16,8 @@ PromptNook does not upload model files during translation. Scanning a model dire
 
 Provider API keys are stored through the operating-system credential manager under the PromptNook service identifier. They are not written to SQLite, exports, logs, or settings JSON by design.
 
+Browser workspace backups contain browser-local library data and supported settings in a versioned JSON file. Translation API keys and unknown credential fields are never included.
+
 ## Exports and reports
 
 JSON, CSV, `.promptnook`, screenshots, logs, and issue attachments are user-controlled disclosures. Inspect them before sharing. Never attach a real database or credential to a public GitHub issue.

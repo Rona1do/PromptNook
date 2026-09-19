@@ -11,9 +11,9 @@
 7. Generate SHA-256 checksums for release assets and verify the Authenticode signature.
 8. Create a signed tag when signing is configured, then draft a GitHub release from the changelog.
 
-## Source-only prereleases
+## Prereleases
 
-Until trusted Windows signing is approved, maintainers may publish source-only prereleases or attach clearly labelled unsigned preview installers. Include SHA-256 checksums, link to the browser workspace, and list known compatibility boundaries. Do not ask users to disable antivirus or other security protections. The manual Windows preview workflow produces an installer and checksum artifact without automatically publishing it.
+Until trusted Windows signing is approved, maintainers may publish source-only prereleases or attach clearly labelled unsigned preview installers. The `0.2.2-beta.1` release uses the latter path. Include `UNSIGNED` in the installer asset name, provide SHA-256 checksums, disclose the signature status in release notes, link to the browser workspace, and list known compatibility boundaries. Do not ask users to disable antivirus or other security protections. The manual Windows preview workflow produces an installer and checksum artifact without automatically publishing it.
 
 ## Release notes
 

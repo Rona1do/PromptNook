@@ -1,5 +1,7 @@
 # Open-source launch checklist
 
+This is a reusable verification checklist, not a statement of current release status. See [CHANGELOG.md](CHANGELOG.md) and [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md) for published versions and signing status. Unchecked items must be verified for the release being prepared rather than assumed from an earlier build.
+
 ## Required before making the repository public
 
 - [x] Replace repository-owner placeholders in documentation and issue links.
@@ -13,7 +15,7 @@
 - [ ] Enable GitHub private vulnerability reporting and Dependabot alerts.
 - [x] Let CI pass before announcing the project.
 
-## Required before the first binary release
+## Required before each binary release
 
 - [ ] Build from a clean checkout.
 - [ ] Smoke-test install, launch, backup, restore, export, import, upgrade, and uninstall.

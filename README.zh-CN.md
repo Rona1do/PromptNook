@@ -11,7 +11,7 @@
 
 [English](README.md)
 
-> **现在就可以完成一次真实流程。** 浏览器工作区会把修改保存在当前浏览器中，不上传数据，并能直接下载真正的 ComfyUI Workflow JSON 0.4。扫描本地文件夹和完整性校验备份仍属于桌面版功能。
+> **现在就可以完成一次真实流程。** 浏览器工作区会把修改保存在当前浏览器中，不上传数据，并能直接下载真正的 ComfyUI Workflow JSON 0.4。浏览器工作区支持导出和校验恢复 JSON 备份；扫描本地文件夹与桌面端完整性快照仍属于桌面版功能。
 
 ![PromptNook 导出到 ComfyUI 的演示](docs/promptnook-comfyui-demo.gif)
 
@@ -21,7 +21,7 @@
 2. 打开示例 **Neon street in the rain**，查看 checkpoint、Prompt 和生成参数。
 3. 点击 **Export ComfyUI workflow**，再把下载的 JSON 载入 ComfyUI。
 
-你所做的修改会保存在该浏览器的本地存储中。Windows 桌面版进一步提供模型/LoRA 文件夹扫描、SQLite 数据库、可迁移备份和操作系统凭据保护。
+你所做的修改会保存在该浏览器的本地存储中。清理站点数据前，请在 **Settings → Backup & export** 下载版本化的浏览器工作区备份。Windows 桌面版进一步提供模型/LoRA 文件夹扫描、SQLite 数据库、经过完整性校验的可迁移备份和操作系统凭据保护。
 
 ## 项目定位
 
@@ -32,6 +32,7 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 ## 主要功能
 
 - **可实际使用的浏览器工作区**：创建和编辑配方、片段与工作区，刷新后数据仍在，并可直接下载 checkpoint 类型的 ComfyUI 工作流。
+- **浏览器备份与恢复**：导出版本化 JSON，经校验后恢复，或重置到当前英文 starter workspace；翻译凭据绝不会进入导出文件。
 - **ComfyUI Workflow JSON 0.4 导出**：自动连接 checkpoint、按顺序加载的 LoRA、正负 Prompt、尺寸、采样器、调度器、步数、CFG 和种子。
 - **本地模型目录**：桌面版直接扫描现有 checkpoint、diffusion model 和 LoRA 文件夹，不要求重新手工建库。
 - **自定义工作区**：可填写任意模型、客户或工作流名称，不固定为三种预设模型。
@@ -67,7 +68,7 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 目前仅在 **Windows 10/11** 上开发和验证。代码结构具备跨平台基础，但在 macOS 和 Linux 的打包流程验证完成前，不会宣称正式支持。
 
-在建立可信代码签名流程前，项目不会公开发布 Windows 安装包；源码版本仍可供审阅和自行构建。详见[代码签名策略](docs/CODE_SIGNING.md)。
+当前 Windows prerelease 已提供在文件名和 release notes 中明确标为 **UNSIGNED** 的安装包，可能触发 Windows 信誉或发布者警告。正式签名的稳定发行仍需先建立获批的可信代码签名流程。源码版本仍可供审阅和自行构建，详见[代码签名策略](docs/CODE_SIGNING.md)。
 
 ## 本地开发
 

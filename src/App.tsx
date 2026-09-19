@@ -612,7 +612,7 @@ function App() {
         </nav>
 
         <div className="sidebar-spacer" />
-        {data && !data.settings.backupPath ? (
+        {data && (!isDesktopRuntime() || !data.settings.backupPath) ? (
           <button
             type="button"
             className="backup-nudge"
@@ -623,8 +623,16 @@ function App() {
           >
             <span><HardDrive size={17} /></span>
             <div>
-              <strong>Set up a second backup</strong>
-              <small>Protect against drive failure</small>
+              <strong>
+                {isDesktopRuntime()
+                  ? "Set up a second backup"
+                  : "Back up browser workspace"}
+              </strong>
+              <small>
+                {isDesktopRuntime()
+                  ? "Protect against drive failure"
+                  : "Before clearing site data"}
+              </small>
             </div>
           </button>
         ) : (
@@ -759,8 +767,9 @@ function App() {
               <CheckCircle2 size={18} />
               <p>
                 <strong>Your changes persist in this browser.</strong>{" "}
-                Create and edit recipes, then download a real ComfyUI workflow.
-                Local folder scanning and verified backups remain desktop-only.
+                Create and edit recipes, download ComfyUI workflows, and export
+                a browser backup from Settings. Local folder scanning and
+                verified desktop snapshots remain desktop-only.
               </p>
             </div>
           ) : null}

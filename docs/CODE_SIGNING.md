@@ -2,11 +2,15 @@
 
 Stable Windows releases require trusted signatures. Preview releases may include unsigned Windows installers when the release is marked as a prerelease and both the asset name and release notes explicitly identify it as unsigned. Never describe an unsigned preview as signed or as guaranteed free of security warnings. Binary files remain outside source control.
 
+## Current release status
+
+The `0.2.2-beta.1` Windows prerelease publishes a clearly labelled `UNSIGNED` installer and checksum. This is an allowed preview distribution, not a trusted signed release. Windows may show reputation or unknown-publisher warnings. A signed stable release remains pending an approved trusted code-signing path.
+
 ## Release requirements
 
 - Release binaries must be built from the public repository by a reproducible GitHub Actions workflow.
 - For stable releases, the application executable and installer must carry a trusted Authenticode signature and timestamp. For unsigned previews, record the actual signature status and do not list a verified publisher.
-- The release page must identify the expected publisher and provide SHA-256 checksums.
+- The release page must state the actual signature and publisher status and provide SHA-256 checksums.
 - Signing credentials must remain in a managed signing service or hardware-backed store; they are never committed to the repository.
 - Every signing request requires explicit approval by the maintainer.
 

@@ -429,7 +429,10 @@ const memory = {
 };
 
 const BROWSER_STORAGE_KEY = "promptnook.browser-workspace.v1";
+const BROWSER_BACKUP_FORMAT = "promptnook-browser-workspace";
+const BROWSER_BACKUP_VERSION = 1;
 let browserMemoryLoaded = false;
+let browserPersistenceBlocked = false;
 
 type BrowserMemorySnapshot = {
   version: 1;
@@ -445,6 +448,21 @@ type BrowserMemorySnapshot = {
   backups: BackupSnapshot[];
 };
 
+export type BrowserWorkspaceBackup = {
+  format: typeof BROWSER_BACKUP_FORMAT;
+  version: typeof BROWSER_BACKUP_VERSION;
+  exportedAt: string;
+  recipes: Recipe[];
+  snippets: Snippet[];
+  categories: Category[];
+  recipeTags: RecipeTag[];
+  resources: Resource[];
+  tips: Tip[];
+  settings: AppSettings;
+  modelDefaults: ModelPromptDefaults;
+  trash: TrashItem[];
+};
+
 function ensureBrowserMemoryLoaded() {
   if (browserMemoryLoaded || isTauriRuntime()) return;
   browserMemoryLoaded = true;
@@ -452,7 +470,13 @@ function ensureBrowserMemoryLoaded() {
     const raw = window.localStorage.getItem(BROWSER_STORAGE_KEY);
     if (!raw) return;
     const snapshot = JSON.parse(raw) as Partial<BrowserMemorySnapshot>;
-    if (snapshot.version !== 1) return;
+    if (snapshot.version !== 1) {
+      // Keep an unknown workspace intact. A later compatible release or a
+      // manual restore can recover it; normal app startup must never replace
+      // it with starter data.
+      browserPersistenceBlocked = true;
+      return;
+    }
     if (Array.isArray(snapshot.recipes)) memory.recipes = snapshot.recipes;
     if (Array.isArray(snapshot.snippets)) memory.snippets = snapshot.snippets;
     if (Array.isArray(snapshot.categories)) memory.categories = snapshot.categories;
@@ -472,12 +496,14 @@ function ensureBrowserMemoryLoaded() {
     if (Array.isArray(snapshot.backups)) memory.backups = snapshot.backups;
     applyActiveModelDefaults();
   } catch {
-    // Corrupt or blocked browser storage should fall back to the sample workspace.
+    // Fall back for this session without overwriting data that a user may
+    // still be able to recover manually.
+    browserPersistenceBlocked = true;
   }
 }
 
 function persistBrowserMemory() {
-  if (isTauriRuntime()) return;
+  if (isTauriRuntime() || browserPersistenceBlocked) return;
   try {
     const snapshot: BrowserMemorySnapshot = {
       version: 1,
@@ -526,6 +552,295 @@ function isTauriRuntime() {
     "__TAURI__" in window ||
     w.isTauri === true
   );
+}
+
+function exportableBrowserSettings(settings: AppSettings): AppSettings {
+  // Explicitly copy supported settings so credentials or unknown fields can
+  // never leak from local storage into a browser workspace backup.
+  return {
+    privacyMode: settings.privacyMode,
+    loraPath: settings.loraPath,
+    checkpointPath: settings.checkpointPath,
+    diffusionModelPath: settings.diffusionModelPath,
+    backupPath: settings.backupPath,
+    translationProvider: settings.translationProvider,
+    translationEndpoint: settings.translationEndpoint,
+    translationModel: settings.translationModel,
+    onlineTranslationEnabled: settings.onlineTranslationEnabled,
+    translationTargetLanguage: settings.translationTargetLanguage,
+    promptModels: structuredClone(settings.promptModels),
+    activePromptModel: settings.activePromptModel,
+    defaultPrefix: settings.defaultPrefix,
+    defaultNegative: settings.defaultNegative,
+  };
+}
+
+function currentBrowserWorkspaceBackup(): BrowserWorkspaceBackup {
+  ensureBrowserMemoryLoaded();
+  return {
+    format: BROWSER_BACKUP_FORMAT,
+    version: BROWSER_BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    recipes: structuredClone(memory.recipes),
+    snippets: structuredClone(memory.snippets),
+    categories: structuredClone(memory.categories),
+    recipeTags: structuredClone(memory.recipeTags),
+    resources: structuredClone(memory.resources),
+    tips: structuredClone(memory.tips),
+    settings: exportableBrowserSettings(memory.settings),
+    modelDefaults: structuredClone(memory.modelDefaults),
+    trash: structuredClone(memory.trash),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasStringFields(
+  value: Record<string, unknown>,
+  fields: string[],
+): boolean {
+  return fields.every((field) => typeof value[field] === "string");
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function isEntityArray(
+  value: unknown,
+  validate: (item: Record<string, unknown>) => boolean,
+): value is Array<Record<string, unknown>> {
+  return Array.isArray(value) && value.every((item) => isRecord(item) && validate(item));
+}
+
+function hasValidBrowserSettings(value: unknown): value is AppSettings {
+  if (!isRecord(value)) return false;
+  const stringFields = [
+    "loraPath",
+    "checkpointPath",
+    "diffusionModelPath",
+    "backupPath",
+    "translationProvider",
+    "translationEndpoint",
+    "translationModel",
+    "translationTargetLanguage",
+    "activePromptModel",
+    "defaultPrefix",
+    "defaultNegative",
+  ];
+  if (!stringFields.every((field) => typeof value[field] === "string")) {
+    return false;
+  }
+  if (
+    typeof value.privacyMode !== "boolean" ||
+    typeof value.onlineTranslationEnabled !== "boolean" ||
+    !Array.isArray(value.promptModels)
+  ) {
+    return false;
+  }
+  return value.promptModels.every(
+    (item) =>
+      isRecord(item) &&
+      typeof item.id === "string" &&
+      typeof item.name === "string" &&
+      typeof item.description === "string",
+  );
+}
+
+function hasValidModelDefaults(value: unknown): value is ModelPromptDefaults {
+  return (
+    isRecord(value) &&
+    isRecord(value.general) &&
+    Object.values(value).every(
+      (item) =>
+        isRecord(item) &&
+        typeof item.defaultPrefix === "string" &&
+        typeof item.defaultNegative === "string",
+    )
+  );
+}
+
+export function validateBrowserWorkspaceBackup(
+  json: string,
+): BrowserWorkspaceBackup {
+  let value: unknown;
+  try {
+    value = JSON.parse(json);
+  } catch {
+    throw new Error("This is not valid JSON.");
+  }
+  if (!isRecord(value)) {
+    throw new Error("This file is not a PromptNook browser workspace backup.");
+  }
+  if (value.format !== BROWSER_BACKUP_FORMAT) {
+    throw new Error("This file is not a PromptNook browser workspace backup.");
+  }
+  if (value.version !== BROWSER_BACKUP_VERSION) {
+    throw new Error(
+      `Unsupported browser workspace backup version: ${String(value.version)}.`,
+    );
+  }
+  const validRecipes = isEntityArray(
+    value.recipes,
+    (item) =>
+      hasStringFields(item, [
+        "id",
+        "title",
+        "status",
+        "modality",
+        "positivePrompt",
+        "positiveTranslation",
+        "negativePrompt",
+        "negativeTranslation",
+        "notes",
+        "createdAt",
+        "updatedAt",
+      ]) &&
+      Array.isArray(item.loras) &&
+      isRecord(item.params) &&
+      Array.isArray(item.assets) &&
+      isStringArray(item.tagIds),
+  );
+  const validSnippets = isEntityArray(
+    value.snippets,
+    (item) =>
+      hasStringFields(item, [
+        "id",
+        "text",
+        "translation",
+        "notes",
+        "createdAt",
+        "updatedAt",
+      ]) && isStringArray(item.categoryIds),
+  );
+  const validCategories = isEntityArray(
+    value.categories,
+    (item) =>
+      hasStringFields(item, ["id", "name", "color"]) &&
+      typeof item.sortOrder === "number",
+  );
+  const validRecipeTags = isEntityArray(
+    value.recipeTags,
+    (item) =>
+      hasStringFields(item, ["id", "name", "color", "kind"]) &&
+      typeof item.sortOrder === "number" &&
+      typeof item.recipeCount === "number",
+  );
+  const validResources = isEntityArray(
+    value.resources,
+    (item) =>
+      hasStringFields(item, ["id", "name", "resourceType", "path"]) &&
+      typeof item.available === "boolean" &&
+      isStringArray(item.triggerWords) &&
+      isStringArray(item.confirmedTriggerWords),
+  );
+  const validTips = isEntityArray(
+    value.tips,
+    (item) =>
+      hasStringFields(item, [
+        "id",
+        "title",
+        "content",
+        "scope",
+        "createdAt",
+        "updatedAt",
+      ]) && typeof item.favorite === "boolean",
+  );
+  const validTrash = isEntityArray(
+    value.trash,
+    (item) =>
+      hasStringFields(item, ["id", "entityType", "title", "deletedAt"]),
+  );
+  if (
+    typeof value.exportedAt !== "string" ||
+    !validRecipes ||
+    !validSnippets ||
+    !validCategories ||
+    !validRecipeTags ||
+    !validResources ||
+    !validTips ||
+    !validTrash ||
+    !hasValidBrowserSettings(value.settings) ||
+    !hasValidModelDefaults(value.modelDefaults)
+  ) {
+    throw new Error(
+      "The browser workspace backup is missing required fields or contains invalid data.",
+    );
+  }
+  return structuredClone(value) as BrowserWorkspaceBackup;
+}
+
+export function serializeBrowserWorkspaceBackup(): string {
+  if (isTauriRuntime()) {
+    throw new Error("Browser workspace backups are only available in the browser app.");
+  }
+  return JSON.stringify(
+    currentBrowserWorkspaceBackup(),
+    (key, value) => {
+      const normalizedKey = key.replace(/[-_]/g, "").toLowerCase();
+      return [
+        "apikey",
+        "translationapikey",
+        "credential",
+        "credentials",
+        "password",
+        "secret",
+        "token",
+      ].includes(normalizedKey)
+        ? undefined
+        : value;
+    },
+    2,
+  );
+}
+
+function applyBrowserWorkspaceBackup(backup: BrowserWorkspaceBackup) {
+  memory.recipes = structuredClone(backup.recipes);
+  memory.snippets = structuredClone(backup.snippets);
+  memory.categories = structuredClone(backup.categories);
+  memory.recipeTags = structuredClone(backup.recipeTags);
+  memory.resources = structuredClone(backup.resources);
+  memory.tips = structuredClone(backup.tips);
+  memory.settings = exportableBrowserSettings(backup.settings);
+  memory.modelDefaults = structuredClone(backup.modelDefaults);
+  memory.trash = structuredClone(backup.trash);
+  memory.backups = [];
+  browserMemoryLoaded = true;
+  browserPersistenceBlocked = false;
+  applyActiveModelDefaults();
+  persistBrowserMemory();
+}
+
+function resetBrowserWorkspaceMemory() {
+  memory.recipes = structuredClone(starterRecipes);
+  memory.snippets = structuredClone(starterSnippets);
+  memory.categories = structuredClone(starterCategories);
+  memory.recipeTags = structuredClone(starterRecipeTags);
+  memory.resources = structuredClone(starterResources);
+  memory.tips = structuredClone(starterTips);
+  memory.settings = structuredClone(initialSettings);
+  memory.modelDefaults = structuredClone(initialModelDefaults);
+  memory.trash = [];
+  memory.backups = [];
+  browserTranslationCredentialConfigured = false;
+  browserMemoryLoaded = true;
+  browserPersistenceBlocked = false;
+  applyActiveModelDefaults();
+  persistBrowserMemory();
+}
+
+function downloadBrowserWorkspaceBackup(json: string) {
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  anchor.href = url;
+  anchor.download = `promptnook-browser-workspace-${date}.json`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+  return anchor.download;
 }
 
 /** True when a prompt still lacks a translation in the user's chosen language. */
@@ -629,7 +944,8 @@ export const api = {
     });
   },
   async saveRecipe(input: RecipeInput) {
-    // 总 Prompt 不在此强制翻译，避免保存卡很久。
+    // Whole prompts are translated only when requested so saving never waits
+    // on a long-running provider call.
     return call<Recipe>("save_recipe", { input }, () => {
       const timestamp = new Date();
       const existing = memory.recipes.find((item) => item.id === input.id);
@@ -675,7 +991,8 @@ export const api = {
     });
   },
   async saveSnippet(input: SnippetInput) {
-    // 只翻一次：由后端 save_snippet 在缺译文时翻译，避免前后端各翻一遍拖很久。
+    // Translate at most once: the backend handles a missing snippet
+    // translation so the frontend and backend never duplicate a slow call.
     return call<Snippet>("save_snippet", { input }, async () => {
       let payload = input;
       if (
@@ -1236,6 +1553,33 @@ export const api = {
       { entityType, entityId },
       () => [],
     );
+  },
+  async exportBrowserWorkspace() {
+    if (isTauriRuntime()) {
+      throw new Error(
+        "Browser workspace backups are only available in the browser app.",
+      );
+    }
+    const fileName = downloadBrowserWorkspaceBackup(
+      serializeBrowserWorkspaceBackup(),
+    );
+    return fileName;
+  },
+  async restoreBrowserWorkspace(json: string) {
+    if (isTauriRuntime()) {
+      throw new Error(
+        "Browser workspace backups are only available in the browser app.",
+      );
+    }
+    applyBrowserWorkspaceBackup(validateBrowserWorkspaceBackup(json));
+  },
+  async resetBrowserWorkspace() {
+    if (isTauriRuntime()) {
+      throw new Error(
+        "Browser workspace reset is only available in the browser app.",
+      );
+    }
+    resetBrowserWorkspaceMemory();
   },
   async createBackup() {
     return call<BackupSnapshot>("create_backup", undefined, async () => {

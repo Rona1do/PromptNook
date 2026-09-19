@@ -47,6 +47,6 @@ Migrations are forward-only and transactional. If the live database cannot be op
 - Local prompt data and scanned paths are sensitive.
 - Translation providers are external unless the endpoint is local.
 - Imported packages, media metadata, and filesystem paths are untrusted input.
-- The browser workspace stores structured data in that browser profile and never reads the desktop database. It cannot scan local folders or provide verified backups.
+- The browser workspace stores structured data in that browser profile and never reads the desktop database. It can export and validate a versioned JSON workspace backup, but it cannot scan local folders or provide the desktop app's verified snapshots and portable packages.
 
 See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](../SECURITY.md).

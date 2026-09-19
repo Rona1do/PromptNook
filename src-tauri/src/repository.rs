@@ -403,8 +403,8 @@ fn derive_recipe_title(title: &str, positive_prompt: &str, timestamp: &str) -> S
         };
     }
 
-    let date = timestamp.get(..10).unwrap_or("未知日期");
-    format!("未命名 Prompt · {date}")
+    let date = timestamp.get(..10).unwrap_or("unknown date");
+    format!("Untitled recipe · {date}")
 }
 
 #[tauri::command]
@@ -412,7 +412,8 @@ pub fn save_recipe(
     state: State<'_, PromptVaultState>,
     input: SaveRecipeInput,
 ) -> Result<Recipe, String> {
-    // 总 Prompt 不强制自动翻译（长文调用慢，由用户手动点翻译）。
+    // Whole prompts are translated only when the user requests it; long
+    // provider calls must not block saving.
     save_recipe_inner(&state, input)
 }
 
@@ -1432,7 +1433,7 @@ pub fn search_all(
             entity_type: "recipe".into(),
             id: recipe.id,
             title: recipe.title,
-            subtitle: "总 Prompt".into(),
+            subtitle: "Positive prompt".into(),
             matched_text: recipe.positive_prompt,
             updated_at: recipe.updated_at,
         });
@@ -1691,7 +1692,7 @@ mod tests {
         );
         assert_eq!(
             derive_recipe_title("", "", "2026-07-28T05:30:00.000Z"),
-            "未命名 Prompt · 2026-07-28"
+            "Untitled recipe · 2026-07-28"
         );
         assert_eq!(
             derive_recipe_title("  手写标题  ", "portrait", "2026-07-28T05:30:00.000Z"),
@@ -1770,8 +1771,8 @@ mod tests {
             },
         )
         .unwrap();
-        assert!(without_prompt.title.starts_with("未命名 Prompt · "));
-        assert_eq!(without_prompt.title.chars().count(), 23);
+        assert!(without_prompt.title.starts_with("Untitled recipe · "));
+        assert_eq!(without_prompt.title.chars().count(), 28);
 
         drop(state);
         let _ = std::fs::remove_dir_all(root);

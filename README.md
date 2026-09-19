@@ -13,7 +13,7 @@
   [ComfyUI export details](docs/COMFYUI_EXPORT.md)
 </div>
 
-> **Try the complete browser workflow now.** Changes are saved in your browser, never uploaded, and checkpoint-based recipes can be downloaded as real ComfyUI Workflow JSON 0.4 files. Folder scanning and verified backups remain desktop-only.
+> **Try the complete browser workflow now.** Changes are saved in your browser, never uploaded, and checkpoint-based recipes can be downloaded as real ComfyUI Workflow JSON 0.4 files. The browser workspace can be backed up and restored with a validated JSON file; folder scanning and verified desktop snapshots remain desktop-only.
 
 ![PromptNook to ComfyUI workflow demo](docs/promptnook-comfyui-demo.gif)
 
@@ -25,7 +25,7 @@
 2. Open **Neon street in the rain** to inspect its checkpoint, prompt, and generation settings.
 3. Choose **Export ComfyUI workflow** and load the downloaded JSON in ComfyUI.
 
-Your edits persist in that browser through local storage. The desktop build adds local checkpoint/LoRA folder scanning, SQLite storage, portable backups, and operating-system credential protection.
+Your edits persist in that browser through local storage. Use **Settings → Backup & export** to download a versioned browser workspace backup before clearing site data. The desktop build adds local checkpoint/LoRA folder scanning, SQLite storage, verified portable backups, and operating-system credential protection.
 
 ## Why PromptNook?
 
@@ -36,6 +36,7 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 ## Highlights
 
 - **Working browser workspace** — create and edit recipes and snippets with browser-local persistence, then download checkpoint-based ComfyUI workflows without installing PromptNook.
+- **Browser backup and restore** — download a versioned JSON workspace, validate it before restore, or reset to the current English starter workspace. Translation credentials are never exported.
 - **ComfyUI workflow export** — produce an editable Workflow JSON 0.4 graph with checkpoint, ordered LoRAs, prompts, size, sampler, scheduler, steps, CFG, and seed already connected.
 - **Local model catalog** — the desktop app scans configured checkpoint, diffusion-model, and LoRA folders instead of asking you to rebuild a catalog manually.
 - **Custom workspaces** — create any model, client, or workflow name. Libraries are not hard-coded to three model families.
@@ -72,7 +73,7 @@ Open an existing recipe in the browser workspace or Windows desktop app and choo
 
 The desktop app is currently developed and tested on **Windows 10/11**. The stack is cross-platform, but macOS and Linux packaging is not yet verified. Do not present those platforms as supported until their release workflows are tested.
 
-Public Windows installers are withheld until a trusted code-signing workflow is available. Source releases remain available for review and local builds. See the [code signing policy](docs/CODE_SIGNING.md).
+The current Windows prerelease includes an installer whose asset name and release notes explicitly mark it **UNSIGNED**. It may trigger Windows reputation or publisher warnings. A formally signed stable release still depends on an approved trusted code-signing workflow. Source releases remain available for review and local builds; see the [code signing policy](docs/CODE_SIGNING.md).
 
 ## Quick start
 

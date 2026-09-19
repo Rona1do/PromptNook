@@ -27,7 +27,11 @@ import type {
   TrashItem,
   TranslationProvider,
 } from "../types";
-import { api, isDesktopRuntime } from "../lib/api";
+import {
+  api,
+  isDesktopRuntime,
+  validateBrowserWorkspaceBackup,
+} from "../lib/api";
 import { readableError } from "../lib/errors";
 import { Badge, Button, EmptyState, Field, IconButton, Notice, Select, Toggle } from "./ui";
 
@@ -78,6 +82,7 @@ export function SettingsDrawer({
     message: string;
   } | null>(null);
   const glossaryInputRef = useRef<HTMLInputElement>(null);
+  const browserBackupInputRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -173,6 +178,66 @@ export function SettingsDrawer({
     try {
       const message = await api.exportData(format);
       onToast(message || "Export complete");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function downloadBrowserBackup() {
+    setWorking(true);
+    try {
+      const fileName = await api.exportBrowserWorkspace();
+      onToast(`Browser workspace downloaded as ${fileName}`);
+    } catch (error) {
+      onToast(`Could not download browser backup: ${readableError(error)}`);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function restoreBrowserBackup(file?: File) {
+    if (!file) return;
+    setWorking(true);
+    try {
+      const json = await file.text();
+      validateBrowserWorkspaceBackup(json);
+      if (
+        !window.confirm(
+          `Restore “${file.name}”? This will replace all data in the current browser workspace.`,
+        )
+      ) {
+        return;
+      }
+      await api.restoreBrowserWorkspace(json);
+      setDraft(await api.getSettings());
+      await onDataChanged();
+      onToast("Browser workspace restored from the validated backup");
+    } catch (error) {
+      onToast(`Could not restore browser workspace: ${readableError(error)}`);
+    } finally {
+      setWorking(false);
+      if (browserBackupInputRef.current) {
+        browserBackupInputRef.current.value = "";
+      }
+    }
+  }
+
+  async function resetBrowserWorkspace() {
+    if (
+      !window.confirm(
+        "Reset this browser workspace to the current English starter data? All current browser workspace data will be replaced.",
+      )
+    ) {
+      return;
+    }
+    setWorking(true);
+    try {
+      await api.resetBrowserWorkspace();
+      setDraft(await api.getSettings());
+      await onDataChanged();
+      onToast("Browser workspace reset to the English starter data");
+    } catch (error) {
+      onToast(`Could not reset browser workspace: ${readableError(error)}`);
     } finally {
       setWorking(false);
     }
@@ -392,7 +457,7 @@ export function SettingsDrawer({
             className={tab === "translation" ? "is-active" : ""}
             onClick={() => setTab("translation")}
           >
-            <Languages size={16} />Translation
+            <Languages size={16} />Prompt translation
           </button>
           <button
             type="button"
@@ -765,7 +830,60 @@ export function SettingsDrawer({
             </div>
           ) : null}
 
-          {tab === "backup" ? (
+          {tab === "backup" ? !isDesktopRuntime() ? (
+            <div className="settings-section">
+              <div className="section-heading">
+                <div>
+                  <h3>Browser workspace backup</h3>
+                  <p>
+                    This workspace is stored only in this browser profile. Download a backup before clearing site data or switching browsers.
+                  </p>
+                </div>
+                <ShieldCheck size={22} />
+              </div>
+              <Notice>
+                Browser backups are versioned JSON files. PromptNook validates the file before restore, and translation API keys are never included.
+              </Notice>
+              <input
+                ref={browserBackupInputRef}
+                type="file"
+                accept=".json,application/json"
+                hidden
+                onChange={(event) =>
+                  void restoreBrowserBackup(event.target.files?.[0])
+                }
+              />
+              <div className="button-row">
+                <Button
+                  variant="secondary"
+                  icon={<Download size={16} />}
+                  disabled={working}
+                  onClick={() => void downloadBrowserBackup()}
+                >
+                  Download browser backup
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={<Upload size={16} />}
+                  disabled={working}
+                  onClick={() => browserBackupInputRef.current?.click()}
+                >
+                  Restore from backup
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={<RotateCcw size={16} />}
+                  disabled={working}
+                  onClick={() => void resetBrowserWorkspace()}
+                >
+                  Reset to starter workspace
+                </Button>
+              </div>
+              <Notice tone="warning">
+                Restore and reset replace the current browser workspace and always ask for confirmation first.
+              </Notice>
+            </div>
+          ) : (
             <div className="settings-section">
               <div className="section-heading">
                 <div>
@@ -919,7 +1037,7 @@ export function SettingsDrawer({
                         <div>
                           <strong>{item.title}</strong>
                           <small>
-                            {formatDate(item.deletedAt)} Move to Trash
+                            {formatDate(item.deletedAt)} · Moved to Trash
                           </small>
                         </div>
                         <div className="button-row">

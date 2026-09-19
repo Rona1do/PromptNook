@@ -477,7 +477,7 @@ fn inspect_resource(resource_type: &str, path: &Path) -> Result<ScannedResource,
     let name = path
         .file_stem()
         .and_then(|v| v.to_str())
-        .unwrap_or("未命名资源")
+        .unwrap_or("Unnamed resource")
         .to_string();
     Ok(ScannedResource {
         id,

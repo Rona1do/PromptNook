@@ -5,7 +5,7 @@ test("browser fallback supports the five destinations and a snippet creation jou
 }) => {
   await page.goto("./");
 
-  await expect(page.getByText("Browser workspace")).toBeVisible();
+  await expect(page.locator(".runtime-label")).toContainText("Browser workspace");
   await expect(page.getByText("Your changes persist in this browser.")).toBeVisible();
   const destinations = [
     ["Recipes", "Recipes"],
@@ -74,7 +74,9 @@ test("browser fallback supports the five destinations and a snippet creation jou
     settings.getByRole("button", { name: /Backup & export/ }),
   ).toBeVisible();
 
-  await settings.getByRole("button", { name: "Translation", exact: true }).click();
+  await settings
+    .getByRole("button", { name: "Prompt translation", exact: true })
+    .click();
   await settings
     .getByRole("button", { name: "Apply Google preset" })
     .click();
@@ -189,6 +191,71 @@ test("browser workspace persists edits and downloads a ComfyUI workflow", async 
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Persistent neon recipe" })).toBeVisible();
+});
+
+test("browser workspace backup survives reset and restores after validation", async ({
+  page,
+}) => {
+  await page.goto("./");
+  await page.getByRole("heading", { name: "Neon street in the rain" }).click();
+  const editor = page.getByRole("dialog");
+  await editor
+    .getByLabel("Title (optional)")
+    .fill("Backup round-trip recipe");
+  await editor.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Backup round-trip recipe" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  let settings = page.getByRole("dialog", { name: "Settings" });
+  await settings.getByRole("button", { name: /Backup & export/ }).click();
+  const downloadPromise = page.waitForEvent("download");
+  await settings
+    .getByRole("button", { name: "Download browser backup" })
+    .click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(
+    /^promptnook-browser-workspace-\d{4}-\d{2}-\d{2}\.json$/,
+  );
+  const backupPath = await download.path();
+  expect(backupPath).toBeTruthy();
+
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain("current English starter data");
+    await dialog.accept();
+  });
+  await settings
+    .getByRole("button", { name: "Reset to starter workspace" })
+    .click();
+  await expect(
+    page.getByText("Browser workspace reset to the English starter data"),
+  ).toBeVisible();
+  await settings.getByRole("button", { name: "Close settings" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Neon street in the rain" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Backup round-trip recipe" }),
+  ).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  settings = page.getByRole("dialog", { name: "Settings" });
+  await settings.getByRole("button", { name: /Backup & export/ }).click();
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain("replace all data");
+    await dialog.accept();
+  });
+  await settings.locator('input[type="file"][accept*="json"]').setInputFiles(
+    backupPath!,
+  );
+  await expect(
+    page.getByText("Browser workspace restored from the validated backup"),
+  ).toBeVisible();
+  await settings.getByRole("button", { name: "Close settings" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Backup round-trip recipe" }),
+  ).toBeVisible();
 });
 
 test("capture English documentation screenshots", async ({ page }) => {

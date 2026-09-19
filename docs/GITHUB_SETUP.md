@@ -1,11 +1,13 @@
-# GitHub setup for the first release
+# GitHub setup reference
+
+This file records the repository's initial public-launch plan. That launch and the `v0.1.0-preview` step below are historical; use [RELEASING.md](RELEASING.md), [CODE_SIGNING.md](CODE_SIGNING.md), and the current changelog for present release status.
 
 ## Repository settings
 
 - Name: `PromptNook`
 - Visibility: Public
 - Description: `A private, local-first prompt library and studio for generative-image creators.`
-- Website: leave empty until an official project page exists
+- Website: `https://rona1do.github.io/PromptNook/`
 - Topics: `prompt-manager`, `generative-ai`, `stable-diffusion`, `flux`, `tauri`, `react`, `rust`, `sqlite`, `local-first`, `windows`
 - Default branch: `main`
 - Enable Issues and Discussions.
@@ -35,7 +37,7 @@ The repository links are configured for `Rona1do/PromptNook`. Add a private secu
 4. `release: automate signed Windows artifacts and checksums`.
 5. `test: add backup/package round-trip fixtures`.
 
-## Launch sequence
+## Historical launch sequence
 
 1. Run `OPEN_SOURCE_CHECKLIST.md` and resolve every blocker.
 2. Publish the source and let CI pass.
