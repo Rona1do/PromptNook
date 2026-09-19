@@ -14,7 +14,7 @@ Do not invent publisher identifiers. Do not share account passwords, identity do
 
 ## Build
 
-Run `scripts/build-msix.ps1` with `-IdentityName`, `-Publisher` and `-PublisherDisplayName` from Partner Center. The default Store version is `0.2.2.0`; Store versions are four numeric parts, not SemVer prerelease strings. The script builds the unbundled Tauri executable and validates the package with Windows SDK MakeAppx. `-SkipBuild` is for explicitly reusing an already verified local build.
+Run `scripts/build-msix.ps1` with `-IdentityName`, `-Publisher` and `-PublisherDisplayName` from Partner Center. The default Store version is `0.2.3.0`; Store versions are four numeric parts, not SemVer prerelease strings. The script builds the unbundled Tauri executable and validates the package with Windows SDK MakeAppx. `-SkipBuild` is for explicitly reusing an already verified local build.
 
 Outputs and staging folders are ignored under `release-artifacts/msix`. Unsigned submission packages are not intended for public sideloading. Do not install a development certificate on users' computers.
 

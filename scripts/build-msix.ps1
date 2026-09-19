@@ -2,7 +2,7 @@ param(
   [Parameter(Mandatory=$true)][string]$IdentityName,
   [Parameter(Mandatory=$true)][string]$Publisher,
   [Parameter(Mandatory=$true)][string]$PublisherDisplayName,
-  [ValidatePattern('^\d+\.\d+\.\d+\.0$')][string]$Version = '0.2.2.0',
+  [ValidatePattern('^\d+\.\d+\.\d+\.0$')][string]$Version = '0.2.3.0',
   [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'

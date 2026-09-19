@@ -4,7 +4,7 @@ Stable Windows releases require trusted signatures. Preview releases may include
 
 ## Current release status
 
-The `0.2.2-beta.1` Windows prerelease publishes a clearly labelled `UNSIGNED` installer and checksum. This is an allowed preview distribution, not a trusted signed release. Windows may show reputation or unknown-publisher warnings. A signed stable release remains pending an approved trusted code-signing path.
+The current `0.2.3-beta.1` Windows prerelease publishes a clearly labelled `UNSIGNED` installer and checksum. This is an allowed preview distribution, not a trusted signed release. Windows may show reputation or unknown-publisher warnings. A signed stable release remains pending an approved trusted code-signing path.
 
 ## Release requirements
 

@@ -4,6 +4,8 @@ All notable changes will be documented here. The format follows Keep a Changelog
 
 ## [Unreleased]
 
+## [0.2.3-beta.1] - 2026-09-19
+
 ### Added
 
 - Browser workspace backup, validated restore, and confirmed reset to the current English starter workspace.
