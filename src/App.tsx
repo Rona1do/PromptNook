@@ -15,9 +15,11 @@ import {
   ShieldAlert,
   Settings as SettingsIcon,
   Sparkles,
+  Star,
   WandSparkles,
   X,
 } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import clsx from "clsx";
 import "./App.css";
 import { api, isDesktopRuntime } from "./lib/api";
@@ -89,6 +91,8 @@ const navigation: {
     icon: Lightbulb,
   },
 ];
+
+const PROJECT_URL = "https://github.com/Rona1do/PromptNook";
 
 type RequestedEntity =
   | { type: "recipe"; id: string }
@@ -262,6 +266,14 @@ function App() {
   function selectPage(nextPage: PageKey) {
     setPage(nextPage);
     setSidebarOpen(false);
+  }
+
+  async function openProjectPage() {
+    if (isDesktopRuntime()) {
+      await openUrl(PROJECT_URL);
+      return;
+    }
+    window.open(PROJECT_URL, "_blank", "noopener,noreferrer");
   }
 
   function selectSearchResult(result: SearchResult) {
@@ -641,6 +653,17 @@ function App() {
             <span>Backups configured</span>
           </div>
         )}
+        <button
+          type="button"
+          className="sidebar-community"
+          onClick={() => void openProjectPage()}
+        >
+          <span className="nav-icon"><Star size={18} /></span>
+          <span className="nav-copy">
+            <strong>Open source on GitHub</strong>
+            <small>Star or share feedback</small>
+          </span>
+        </button>
         <button
           type="button"
           className="sidebar-settings"

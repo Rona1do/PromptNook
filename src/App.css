@@ -257,6 +257,7 @@ kbd {
 }
 
 .main-navigation button,
+.sidebar-community,
 .sidebar-settings {
   display: flex;
   width: 100%;
@@ -273,6 +274,7 @@ kbd {
 }
 
 .main-navigation button:hover,
+.sidebar-community:hover,
 .sidebar-settings:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.07);
@@ -406,6 +408,26 @@ kbd {
   min-height: 40px;
 }
 
+.sidebar-community {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  color: rgba(255, 255, 255, 0.68);
+  text-align: left;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.sidebar-community:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
 .sidebar-settings > span:last-child {
   overflow: hidden;
   font-size: 11.5px;
@@ -461,6 +483,7 @@ kbd {
 .sidebar-compact .main-navigation button > i,
 .sidebar-compact .backup-nudge div,
 .sidebar-compact .backup-ok span,
+.sidebar-compact .sidebar-community .nav-copy,
 .sidebar-compact .sidebar-settings > span:last-child,
 .sidebar-compact .runtime-label {
   display: none;
@@ -468,6 +491,7 @@ kbd {
 
 .sidebar-compact .sidebar-search,
 .sidebar-compact .main-navigation button,
+.sidebar-compact .sidebar-community,
 .sidebar-compact .sidebar-settings,
 .sidebar-compact .backup-nudge {
   justify-content: center;
@@ -4493,6 +4517,7 @@ select:focus {
   .app-sidebar .main-navigation button > i,
   .app-sidebar .backup-nudge div,
   .app-sidebar .backup-ok span,
+  .app-sidebar .sidebar-community .nav-copy,
   .app-sidebar .sidebar-settings > span:last-child,
   .app-sidebar .runtime-label {
     display: none;
@@ -4500,6 +4525,7 @@ select:focus {
 
   .app-sidebar .sidebar-search,
   .app-sidebar .main-navigation button,
+  .app-sidebar .sidebar-community,
   .app-sidebar .sidebar-settings,
   .app-sidebar .backup-nudge {
     justify-content: center;
@@ -4566,12 +4592,14 @@ select:focus {
   .app-sidebar.is-mobile-open .main-navigation button > i,
   .app-sidebar.is-mobile-open .backup-nudge div,
   .app-sidebar.is-mobile-open .backup-ok span,
+  .app-sidebar.is-mobile-open .sidebar-community .nav-copy,
   .app-sidebar.is-mobile-open .sidebar-settings > span:last-child,
   .app-sidebar.is-mobile-open .runtime-label {
     display: flex;
   }
 
   .app-sidebar.is-mobile-open .main-navigation button,
+  .app-sidebar.is-mobile-open .sidebar-community,
   .app-sidebar.is-mobile-open .sidebar-settings,
   .app-sidebar.is-mobile-open .sidebar-search,
   .app-sidebar.is-mobile-open .backup-nudge {

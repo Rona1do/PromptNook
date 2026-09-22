@@ -5,7 +5,8 @@
   <p>Keep prompts, checkpoints, ordered LoRAs, trigger words, and generation settings together — then export an editable workflow.</p>
 
   [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
-  [![Preview release](https://img.shields.io/github/v/release/Rona1do/PromptNook?include_prereleases&label=preview)](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)
+  [![Browser workspace: ready](https://img.shields.io/badge/browser_workspace-ready-238636.svg)](https://rona1do.github.io/PromptNook/)
+  [![Windows desktop: beta](https://img.shields.io/badge/Windows_desktop-beta-d97706.svg)](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)
   [![License: MIT](https://img.shields.io/badge/License-MIT-5d5fef.svg)](LICENSE)
 
   **[Try the live browser demo →](https://rona1do.github.io/PromptNook/)** ·
@@ -14,6 +15,8 @@
 </div>
 
 > Built for people whose successful generations are scattered across text files, PNG metadata, model folders, and memory. PromptNook is a standalone library and workflow companion—not a prompt generator, image generator, or ComfyUI custom node.
+
+**Project status:** the browser workspace is ready for everyday use and includes backup/restore. The Windows desktop app remains a beta while clean-machine installation, upgrade, and cross-machine backup recovery are verified and trusted signing is arranged.
 
 ![PromptNook to ComfyUI workflow demo](docs/promptnook-comfyui-demo.gif)
 
@@ -89,6 +92,8 @@ Open an existing recipe in the browser workspace or Windows desktop app and choo
 The desktop app is currently developed and tested on **Windows 10/11**. The stack is cross-platform, but macOS and Linux packaging is not yet verified. Do not present those platforms as supported until their release workflows are tested.
 
 The current Windows prerelease includes an installer whose asset name and release notes explicitly mark it **UNSIGNED**. It may trigger Windows reputation or publisher warnings. Review the release notes and checksum; do not disable Windows security protections. A formally signed stable release still depends on a trusted code-signing workflow. Source releases remain available for review and local builds; see the [code signing policy](docs/CODE_SIGNING.md).
+
+The first stable Windows release will follow successful clean-machine install/uninstall, upgrade, and cross-machine backup/restore checks. Until those gates are recorded, changing the badge from beta to stable would be a marketing label rather than evidence of release quality.
 
 ## Quick start
 

@@ -8,6 +8,8 @@ All notable changes will be documented here. The format follows Keep a Changelog
 
 - Refined the repository landing page, public social preview, search metadata, and browser-demo discovery metadata around PromptNook's concrete ComfyUI recipe-to-workflow use case.
 - Made the browser-versus-desktop feature boundary and current unsigned Windows preview easier to understand before download.
+- Added a visible in-app GitHub entry point so browser and desktop users can find the source, star the project, or share feedback after trying it.
+- Documented separate browser-ready and Windows-beta status plus evidence-based gates for the first stable Windows release.
 
 ## [0.2.3-beta.1] - 2026-09-19
 

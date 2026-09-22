@@ -34,6 +34,14 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 - [ ] Add a documented plugin/importer boundary without exposing the local database directly.
 - [ ] Evaluate verified macOS and Linux builds with community maintainers.
 
+## Stable Windows release gates
+
+- [ ] Record a clean Windows 10/11 install, first-launch, and uninstall smoke test.
+- [ ] Record an upgrade test from the latest public beta without user-data loss.
+- [ ] Verify a portable backup round trip on a second Windows machine or clean VM.
+- [ ] Establish trusted code signing and verify the installed publisher identity.
+- [ ] Publish checksums and a release-specific list of supported and unsupported workflows.
+
 ## Non-goals
 
 - Hosting user prompt libraries as a mandatory cloud service.

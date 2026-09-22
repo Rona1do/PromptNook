@@ -11,6 +11,7 @@ describe("PromptNook browser fallback smoke", () => {
   });
 
   it("renders all navigation destinations, opens Ctrl+K search, and creates a new recipe", async () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<App />);
 
     expect(
@@ -25,6 +26,15 @@ describe("PromptNook browser fallback smoke", () => {
     expect(
       screen.getByText("Your changes persist in this browser."),
     ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Open source on GitHub/ }),
+    );
+    expect(openSpy).toHaveBeenCalledWith(
+      "https://github.com/Rona1do/PromptNook",
+      "_blank",
+      "noopener,noreferrer",
+    );
 
     fireEvent.click(
       screen.getByRole("button", { name: /^New recipe$/ }),
