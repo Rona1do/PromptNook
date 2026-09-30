@@ -6,7 +6,7 @@ test("browser fallback supports the five destinations and a snippet creation jou
   await page.goto("./");
 
   await expect(page.locator(".runtime-label")).toContainText("Browser workspace");
-  await expect(page.getByText("Your changes persist in this browser.")).toBeVisible();
+  await expect(page.getByText("Try this first.")).toBeVisible();
   const destinations = [
     ["Recipes", "Recipes"],
     ["Snippets", "Snippets"],
@@ -266,6 +266,11 @@ test("capture English documentation screenshots", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./");
   await expect(page.getByRole("heading", { level: 1, name: "Recipes" })).toBeVisible();
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll(".recipe-card img")].every(
+      (img) => img.complete && img.naturalWidth > 0,
+    ),
+  );
   await page.screenshot({ path: "docs/screenshots/recipes.png", fullPage: true });
 
   await page.getByRole("button", { name: /^Studio/ }).first().click();

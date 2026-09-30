@@ -1544,10 +1544,89 @@ select:focus {
 
 .visual-placeholder {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  color: rgba(255, 255, 255, 0.92);
   background: linear-gradient(135deg, #292f68 0%, #6569d7 54%, #f29a88 100%);
+}
+
+.visual-placeholder svg,
+.visual-placeholder small {
+  position: relative;
+  z-index: 1;
+}
+
+.visual-placeholder small {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.import-drop-zone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px dashed var(--pv-border-strong);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.import-drop-zone.is-active {
+  border-color: var(--pv-indigo);
+  background: var(--pv-indigo-soft);
+}
+
+.import-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-copy strong,
+.import-copy small {
+  display: block;
+}
+
+.import-copy small {
+  margin-top: 3px;
+  color: var(--pv-text-muted);
+  line-height: 1.45;
+}
+
+.export-limit-pill,
+.export-ready-pill {
+  display: inline-flex;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.export-limit-pill {
+  background: #fff4e5;
+  color: #9a6700;
+}
+
+.export-ready-pill {
+  background: #e7f6ee;
+  color: #1d7a45;
+}
+
+@media (max-width: 760px) {
+  .import-drop-zone {
+    flex-wrap: wrap;
+  }
+
+  .import-drop-zone .import-copy {
+    flex-basis: calc(100% - 40px);
+  }
 }
 
 .visual-placeholder::after {
@@ -4844,6 +4923,17 @@ select:focus {
 
 .browser-workspace-banner strong {
   color: #263762;
+}
+
+.banner-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pv-indigo);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .recovery-banner > span {

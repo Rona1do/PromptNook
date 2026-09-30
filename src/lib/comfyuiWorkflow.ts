@@ -1,4 +1,8 @@
 import type { AppSettings, Recipe, Resource } from "../types";
+import {
+  DIFFUSION_EXPORT_ERROR,
+  DIFFUSION_IMPORT_MARKER,
+} from "./comfyuiImport";
 
 export interface BrowserComfyWorkflow {
   workflow: Record<string, unknown>;
@@ -95,9 +99,7 @@ export function buildBrowserComfyWorkflow(
 
   if (checkpoint) {
     if (checkpoint.resourceType === "diffusion_model") {
-      throw new Error(
-        "This recipe uses a diffusion-model resource. The first exporter supports checkpoint workflows only; a FLUX template will be added separately.",
-      );
+      throw new Error(DIFFUSION_EXPORT_ERROR);
     }
     if (checkpoint.resourceType !== "checkpoint") {
       throw new Error("The selected recipe model is not a checkpoint resource");
@@ -108,6 +110,8 @@ export function buildBrowserComfyWorkflow(
       "checkpoint",
       warnings,
     );
+  } else if (recipe.notes.includes(DIFFUSION_IMPORT_MARKER)) {
+    throw new Error(DIFFUSION_EXPORT_ERROR);
   } else if (checkpointName) {
     warnings.push(
       "The saved checkpoint is missing from the local catalog; its saved display name was exported",

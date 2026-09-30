@@ -47,6 +47,11 @@ import type {
 } from "../types";
 import { api, isDesktopRuntime } from "../lib/api";
 import { readableError } from "../lib/errors";
+import {
+  importRecipeFromFile,
+  recipeExportDeferred,
+  toRecipeInput,
+} from "../lib/comfyuiImport";
 import { deriveRecipeTitle } from "../lib/recipeTitle";
 import {
   detectLorasFromPrompt,
@@ -126,7 +131,7 @@ function formatUpdated(value: string) {
   if (delta < 60_000) return "Just now";
   if (delta < 3_600_000) return `${Math.max(1, Math.floor(delta / 60_000))} minutes ago`;
   if (delta < 86_400_000) return `${Math.floor(delta / 3_600_000)} hours ago`;
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
   }).format(date);
@@ -193,7 +198,7 @@ function RecipeVisual({
           <span className="visual-orb visual-orb-a" />
           <span className="visual-orb visual-orb-b" />
           <Sparkles size={size === "hero" ? 32 : 23} />
-          <small>{privacyMode && cover ? "Hidden" : "Preview images"}</small>
+          <small>{privacyMode && cover ? "Hidden" : "No preview"}</small>
         </div>
       )}
       {privacyMode ? (
@@ -205,6 +210,7 @@ function RecipeVisual({
 
 function RecipeCard({
   recipe,
+  resources,
   recipeTags,
   privacyMode,
   onOpen,
@@ -214,6 +220,7 @@ function RecipeCard({
   onToast,
 }: {
   recipe: Recipe;
+  resources: Resource[];
   recipeTags: RecipeTag[];
   privacyMode: boolean;
   onOpen: () => void;
@@ -464,6 +471,11 @@ function RecipeCard({
         ) : null}
         <div className="recipe-meta">
           <span>{recipe.modelName || "No model selected"}</span>
+          {recipeExportDeferred(recipe, resources) ? (
+            <span className="export-limit-pill">Export later</span>
+          ) : recipe.modelId ? (
+            <span className="export-ready-pill">Exports</span>
+          ) : null}
           {recipe.loras.length ? (
             <span>+{recipe.loras.length} LoRA</span>
           ) : null}
@@ -975,12 +987,21 @@ export function RecipeEditor({
           </div>
           {recipe ? (
             <Button
-              variant="ghost"
+              variant="secondary"
               icon={<Download size={16} />}
-              disabled={exportingComfyUi}
+              disabled={exportingComfyUi || recipeExportDeferred(recipe, resources)}
+              title={
+                recipeExportDeferred(recipe, resources)
+                  ? "FLUX and other diffusion-model graphs need a separate template."
+                  : "Download an editable ComfyUI Workflow JSON 0.4 file"
+              }
               onClick={() => void exportComfyUiWorkflow()}
             >
-              {exportingComfyUi ? "Exporting…" : "Export ComfyUI workflow"}
+              {recipeExportDeferred(recipe, resources)
+                ? "Export later"
+                : exportingComfyUi
+                  ? "Exporting…"
+                  : "Export ComfyUI workflow"}
             </Button>
           ) : null}
           {recipe ? (
@@ -1845,6 +1866,66 @@ export function RecipePage({
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"updated" | "rating" | "usage">("updated");
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
+  const [importDrag, setImportDrag] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
+  const importDragDepth = useRef(0);
+
+  const importFiles = useCallback(
+    async (files: File[]) => {
+      const accepted = files.filter((file) => {
+        const name = file.name.toLocaleLowerCase();
+        return (
+          file.type === "image/png" ||
+          file.type === "application/json" ||
+          file.type === "text/plain" ||
+          name.endsWith(".png") ||
+          name.endsWith(".json") ||
+          name.endsWith(".txt")
+        );
+      });
+      if (!accepted.length) {
+        onToast("Drop a ComfyUI PNG, workflow JSON, or A1111 parameters text file");
+        return;
+      }
+      setImporting(true);
+      const saved: string[] = [];
+      const problems: string[] = [];
+      try {
+        for (const file of accepted) {
+          try {
+            const draft = await importRecipeFromFile(file);
+            const recipe = toRecipeInput(draft, resources);
+            if (file.type === "image/png" || file.name.toLocaleLowerCase().endsWith(".png")) {
+              try {
+                const asset = await fileToAsset(file);
+                recipe.assets = [asset];
+                recipe.coverAssetId = asset.id;
+              } catch {
+                problems.push(`${file.name}: saved without a cover image`);
+              }
+            }
+            await onSave(recipe);
+            saved.push(file.name);
+          } catch (error) {
+            problems.push(`${file.name}: ${readableError(error)}`);
+          }
+        }
+      } finally {
+        setImporting(false);
+      }
+      if (saved.length === 1 && !problems.length) {
+        onToast(`Saved a recipe from ${saved[0]}`);
+      } else if (saved.length && !problems.length) {
+        onToast(`Saved ${saved.length} recipes`);
+      } else if (saved.length) {
+        onToast(`Saved ${saved.length} recipe(s). ${problems[0]}`);
+      } else {
+        onToast(problems[0] ? `Import failed: ${problems[0]}` : "Nothing to import");
+      }
+    },
+    [onSave, onToast, resources],
+  );
 
   useEffect(() => {
     if (!requestedRecipeId) return;
@@ -1907,7 +1988,7 @@ export function RecipePage({
         <div>
           <span className="eyebrow">Ideas & results</span>
           <h1>Recipes</h1>
-          <p>Save the complete recipe with its model, LoRAs, and parameters.</p>
+          <p>Drop a ComfyUI PNG or workflow to keep the prompt, model, LoRAs, and settings.</p>
         </div>
         <div className="page-actions">
           <Button
@@ -1925,6 +2006,55 @@ export function RecipePage({
           </Button>
         </div>
       </header>
+
+      <section
+        className={clsx("import-drop-zone", importDrag && "is-active")}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          importDragDepth.current += 1;
+          setImportDrag(true);
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+        }}
+        onDragLeave={() => {
+          importDragDepth.current = Math.max(0, importDragDepth.current - 1);
+          if (importDragDepth.current === 0) setImportDrag(false);
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          importDragDepth.current = 0;
+          setImportDrag(false);
+          void importFiles(Array.from(event.dataTransfer.files));
+        }}
+      >
+        <FileImage size={22} />
+        <div className="import-copy">
+          <strong>{importing ? "Reading generation data…" : "Drop a ComfyUI image or workflow"}</strong>
+          <small>
+            PNG metadata, workflow JSON, or an A1111 parameters file becomes a recipe. Checkpoint graphs can be exported again. FLUX graphs are saved and marked Export later.
+          </small>
+        </div>
+        <Button
+          variant="secondary"
+          disabled={importing}
+          onClick={() => importRef.current?.click()}
+        >
+          Choose file
+        </Button>
+        <input
+          ref={importRef}
+          type="file"
+          hidden
+          multiple
+          accept=".png,.json,.txt,image/png,application/json,text/plain"
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            event.target.value = "";
+            void importFiles(files);
+          }}
+        />
+      </section>
 
       <section className="toolbar">
         <div className="segmented-filter" aria-label="Recipe filters">
@@ -2006,6 +2136,7 @@ export function RecipePage({
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
+              resources={resources}
               recipeTags={recipeTags}
               privacyMode={privacyMode}
               onOpen={() => setEditing(recipe)}
@@ -2027,7 +2158,7 @@ export function RecipePage({
           >
             <span><FolderPlus size={23} /></span>
             <strong>Save a new idea</strong>
-            <small>A single prompt is enough to begin</small>
+            <small>Or drop a ComfyUI image above</small>
           </button>
         </div>
       ) : (

@@ -238,7 +238,69 @@ const starterSnippets: Snippet[] = [
   },
 ];
 
+function sampleCover(recipeId: string, file: string): Asset {
+  const base = import.meta.env.BASE_URL || "/";
+  return {
+    id: `cover-${recipeId}`,
+    name: file,
+    mimeType: "image/jpeg",
+    url: `${base}samples/${file}`,
+  };
+}
+
+/** Sample recipes visitors can try before they import their own files. */
+const starterCoverSpecs = {
+  "recipe-rain": {
+    title: "Neon street in the rain",
+    file: "neon-street.jpg",
+    updatedAt: "2026-09-22T18:00:00.000Z",
+  },
+  "recipe-product": {
+    title: "Minimal perfume product shot",
+    file: "perfume-product.jpg",
+    updatedAt: "2026-09-21T18:00:00.000Z",
+  },
+  "recipe-window": {
+    title: "Morning window portrait",
+    file: "morning-window.jpg",
+    updatedAt: "2026-09-20T18:00:00.000Z",
+  },
+} as const;
+
 const starterRecipes: Recipe[] = [
+  {
+    id: "recipe-rain",
+    title: starterCoverSpecs["recipe-rain"].title,
+    status: "reproducible",
+    modality: "text_to_image",
+    positivePrompt:
+      "cinematic night street, neon reflections on wet pavement, lone figure holding a transparent umbrella, teal and amber light",
+    positiveTranslation: "",
+    negativePrompt: "daylight, low contrast, text",
+    negativeTranslation: "",
+    modelId: "model-sdxl",
+    modelName: "DreamShaper XL Turbo",
+    loras: [],
+    params: {
+      width: 1024,
+      height: 1024,
+      sampler: "dpmpp_2m",
+      scheduler: "karras",
+      steps: 8,
+      cfg: 2,
+      seed: "-1",
+    },
+    assets: [sampleCover("recipe-rain", starterCoverSpecs["recipe-rain"].file)],
+    coverAssetId: "cover-recipe-rain",
+    tagIds: ["tag-landscape", "tag-photography"],
+    notes: "Rain-streak weighting still needs testing. This checkpoint recipe can be exported to ComfyUI.",
+    favorite: true,
+    rating: 5,
+    usageCount: 2,
+    promptModel: "general",
+    createdAt: starterCoverSpecs["recipe-rain"].updatedAt,
+    updatedAt: starterCoverSpecs["recipe-rain"].updatedAt,
+  },
   {
     id: "recipe-window",
     title: "Morning window portrait",
@@ -271,47 +333,17 @@ const starterRecipes: Recipe[] = [
       cfg: 3.5,
       seed: "42819376",
     },
-    assets: [],
+    assets: [sampleCover("recipe-window", starterCoverSpecs["recipe-window"].file)],
+    coverAssetId: "cover-recipe-window",
     tagIds: ["tag-portrait", "tag-photography"],
-    notes: "Lower the cinematic LoRA to 0.75 if skin tones become too warm.",
+    notes:
+      "Lower the cinematic LoRA to 0.75 if skin tones become too warm. Checkpoint export is not available for this FLUX diffusion model yet.",
     favorite: true,
-    rating: 5,
+    rating: 4,
     usageCount: 9,
     promptModel: "general",
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "recipe-rain",
-    title: "Neon street in the rain",
-    status: "draft",
-    modality: "text_to_image",
-    positivePrompt:
-      "cinematic night street, neon reflections on wet pavement, lone figure holding a transparent umbrella, teal and amber light",
-    positiveTranslation: "",
-    negativePrompt: "daylight, low contrast, text",
-    negativeTranslation: "",
-    modelId: "model-sdxl",
-    modelName: "DreamShaper XL Turbo",
-    loras: [],
-    params: {
-      width: 1024,
-      height: 1024,
-      sampler: "dpmpp_2m",
-      scheduler: "karras",
-      steps: 8,
-      cfg: 2,
-      seed: "-1",
-    },
-    assets: [],
-    tagIds: ["tag-landscape", "tag-photography"],
-    notes: "Rain-streak weighting still needs testing.",
-    favorite: false,
-    rating: 3,
-    usageCount: 2,
-    promptModel: "general",
-    createdAt: now,
-    updatedAt: now,
+    createdAt: starterCoverSpecs["recipe-window"].updatedAt,
+    updatedAt: starterCoverSpecs["recipe-window"].updatedAt,
   },
   {
     id: "recipe-product",
@@ -335,15 +367,16 @@ const starterRecipes: Recipe[] = [
       cfg: 5,
       seed: "9081251",
     },
-    assets: [],
+    assets: [sampleCover("recipe-product", starterCoverSpecs["recipe-product"].file)],
+    coverAssetId: "cover-recipe-product",
     tagIds: [],
-    notes: "",
+    notes: "This checkpoint product shot can be exported to ComfyUI.",
     favorite: true,
     rating: 4,
     usageCount: 6,
     promptModel: "general",
-    createdAt: now,
-    updatedAt: now,
+    createdAt: starterCoverSpecs["recipe-product"].updatedAt,
+    updatedAt: starterCoverSpecs["recipe-product"].updatedAt,
   },
 ];
 
@@ -463,6 +496,25 @@ export type BrowserWorkspaceBackup = {
   trash: TrashItem[];
 };
 
+function hydrateStarterCovers() {
+  let changed = false;
+  memory.recipes = memory.recipes.map((recipe) => {
+    const spec = starterCoverSpecs[recipe.id as keyof typeof starterCoverSpecs];
+    if (!spec || recipe.title !== spec.title || recipe.assets.length > 0) {
+      return recipe;
+    }
+    changed = true;
+    const asset = sampleCover(recipe.id, spec.file);
+    return {
+      ...recipe,
+      assets: [asset],
+      coverAssetId: asset.id,
+      updatedAt: spec.updatedAt,
+    };
+  });
+  if (changed) persistBrowserMemory();
+}
+
 function ensureBrowserMemoryLoaded() {
   if (browserMemoryLoaded || isTauriRuntime()) return;
   browserMemoryLoaded = true;
@@ -495,6 +547,7 @@ function ensureBrowserMemoryLoaded() {
     if (Array.isArray(snapshot.trash)) memory.trash = snapshot.trash;
     if (Array.isArray(snapshot.backups)) memory.backups = snapshot.backups;
     applyActiveModelDefaults();
+    hydrateStarterCovers();
   } catch {
     // Fall back for this session without overwriting data that a user may
     // still be able to recover manually.

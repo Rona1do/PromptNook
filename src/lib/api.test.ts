@@ -292,6 +292,15 @@ describe("browser workspace backup, restore, and reset", () => {
     expect(resetData.recipes.map((recipe) => recipe.title)).toContain(
       "Neon street in the rain",
     );
+    const byRecent = [...resetData.recipes].sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
+    expect(byRecent[0]?.title).toBe("Neon street in the rain");
+    expect(byRecent[0]?.assets[0]?.url).toMatch(/samples\/neon-street\.jpg$/);
+    expect(
+      resetData.recipes.find((recipe) => recipe.id === "recipe-window")?.assets[0]
+        ?.url,
+    ).toMatch(/samples\/morning-window\.jpg$/);
     expect(JSON.stringify(resetData)).not.toMatch(/[\u4e00-\u9fff]/u);
 
     await api.restoreBrowserWorkspace(backup);

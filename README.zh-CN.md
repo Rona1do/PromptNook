@@ -2,7 +2,7 @@
   <img src="public/promptnook-icon.png" alt="PromptNook 图标" width="128" />
   <h1>PromptNook</h1>
   <p><strong>为 ComfyUI 创作者设计的本地优先配方库。</strong></p>
-  <p>把 Prompt、checkpoint、按顺序加载的 LoRA、触发词和生成参数放在一起，再导出可编辑工作流。</p>
+  <p>丢进一张已经出好的图或工作流，收下 checkpoint、LoRA、Prompt 和参数，再导出可编辑的图。</p>
 
   **[立即体验浏览器 Demo →](https://rona1do.github.io/PromptNook/)** ·
   **[下载 Windows 预览版](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)** ·
@@ -11,11 +11,17 @@
 
 [English](README.md)
 
-> 如果你成功出图所需的信息散落在文本文件、PNG 元数据、模型目录和记忆里，PromptNook 就是为这个问题设计的。它是独立的资料库和工作流伴侣，不是 Prompt 生成器、出图工具或 ComfyUI 自定义节点。
-
-**项目状态：** 浏览器工作区已经可以日常使用，并提供备份与恢复；Windows 桌面版在完成干净机器安装、升级、跨机器备份恢复验证及可信签名流程前继续标记为 beta。
+把 ComfyUI 的 PNG 或 workflow JSON 拖进[浏览器工作区](https://rona1do.github.io/PromptNook/)。PromptNook 会把它收成一条配方：checkpoint 或 diffusion model、按顺序的 LoRA、Prompt 和采样参数，并把 checkpoint 文生图配方再导出成可编辑的 ComfyUI 图。不需要账号，资料留在这个浏览器里。
 
 ![PromptNook 导出到 ComfyUI 的演示](docs/promptnook-comfyui-demo.gif)
+
+## 60 秒上手
+
+1. 打开[浏览器工作区](https://rona1do.github.io/PromptNook/)。
+2. 把一张 ComfyUI PNG 或 workflow JSON 拖到 **Recipes**。Prompt、模型、按顺序的 LoRA 和采样设置会变成一条配方，PNG 会成为封面。
+3. 打开这条配方，或示例 **Neon street in the rain**，点击 **Export ComfyUI workflow**，再把 JSON 载入 ComfyUI。
+
+基于 checkpoint 的文生图现在就可以导出。FLUX 或其他 diffusion model 图会保存下来，并标成 **Export later**。Windows 桌面版仍是未签名 beta：它额外提供目录扫描、SQLite 和可校验备份，安装时 Windows 可能会出现 SmartScreen 警告。
 
 ## 选择体验方式
 
@@ -26,15 +32,7 @@
 | 功能 | 持久化配方、片段、Studio、JSON 备份、ComfyUI 导出 | 浏览器版全部功能，以及目录扫描、SQLite、凭据保护和可迁移校验备份 |
 | 数据位置 | 保存在当前浏览器 | 保存在你的电脑 |
 
-浏览器版不是静态样品。你可以编辑 starter recipes、下载真实的 ComfyUI Workflow JSON 0.4，关闭页面后再回来继续。
-
-## 60 秒上手
-
-1. 打开[浏览器工作区](https://rona1do.github.io/PromptNook/)，不需要安装或注册。
-2. 打开示例 **Neon street in the rain**，查看 checkpoint、Prompt 和生成参数。
-3. 点击 **Export ComfyUI workflow**，再把下载的 JSON 载入 ComfyUI。
-
-你所做的修改会保存在该浏览器的本地存储中。清理站点数据前，请在 **Settings → Backup & export** 下载版本化的浏览器工作区备份。Windows 桌面版进一步提供模型/LoRA 文件夹扫描、SQLite 数据库、经过完整性校验的可迁移备份和操作系统凭据保护。
+浏览器版不是静态样品。你可以导入自己的出图、编辑 starter recipes、下载真实的 ComfyUI Workflow JSON 0.4，关闭页面后再回来继续。清理站点数据前，请在 **Settings → Backup & export** 下载版本化备份。
 
 ## 项目定位
 
@@ -44,6 +42,7 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 ## 主要功能
 
+- **导入已经出好的图**：拖入 ComfyUI PNG、workflow JSON 或 A1111 参数文本。checkpoint 或 diffusion model、按顺序的 LoRA、正负 Prompt、尺寸、采样器、步数、CFG 和种子会收成一条配方，PNG 成为封面。
 - **可实际使用的浏览器工作区**：创建和编辑配方、片段与工作区，刷新后数据仍在，并可直接下载 checkpoint 类型的 ComfyUI 工作流。
 - **浏览器备份与恢复**：导出版本化 JSON，经校验后恢复，或重置到当前英文 starter workspace；翻译凭据绝不会进入导出文件。
 - **ComfyUI Workflow JSON 0.4 导出**：自动连接 checkpoint、按顺序加载的 LoRA、正负 Prompt、尺寸、采样器、调度器、步数、CFG 和种子。
@@ -65,10 +64,6 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 ![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
 截图使用仓库自带的示例数据，不包含维护者的私人资料库或个人文件路径。
-
-## 语言策略
-
-当前界面和 starter workspace 为英文，Prompt 内容可以使用任意语言。完整的简体中文 UI 和底层诊断信息本地化仍在路线图中；**Prompt translation** 只翻译 Prompt 内容，不会切换界面语言。具体见 [ROADMAP.md](ROADMAP.md)。
 
 ## ComfyUI 导出
 
@@ -112,6 +107,10 @@ cargo test --manifest-path src-tauri/Cargo.toml
 ## 隐私
 
 翻译默认关闭。启用后，只有你主动要求翻译的文字会发送到所配置的服务。API 密钥保存在操作系统凭据管理器中，不写入 SQLite。详细说明见 [docs/PRIVACY.md](docs/PRIVACY.md)。Windows 桌面数据目录为 `%LOCALAPPDATA%\PromptNook\vault`，不会自动读取原私人项目的数据。
+
+## 语言策略
+
+当前界面和 starter workspace 为英文，Prompt 内容可以使用任意语言。完整的简体中文 UI 和底层诊断信息本地化仍在路线图中；**Prompt translation** 只翻译 Prompt 内容，不会切换界面语言。具体见 [ROADMAP.md](ROADMAP.md)。
 
 ## 参与贡献
 

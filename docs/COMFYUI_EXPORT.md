@@ -2,6 +2,12 @@
 
 PromptNook v0.2 exports an existing checkpoint-based recipe from either the browser workspace or Windows desktop app as an editable ComfyUI Workflow JSON 0.4 graph. The feature is intended as a reliable starting graph, not as a promise that every custom-node setup can be reconstructed automatically.
 
+## Import
+
+The recipe library accepts a ComfyUI PNG (embedded `workflow` or `prompt` text), a Workflow JSON file, or an A1111 `parameters` block. Drop the file onto **Recipes** or use **Choose file**. Checkpoint loaders, ordered LoRA loaders, prompts, size, sampler, scheduler, steps, CFG, and seed are copied into a new recipe. A PNG is stored as that recipe's cover.
+
+UNET and other diffusion-model graphs, including typical FLUX setups built around `SamplerCustomAdvanced`, are stored with an explicit note. Export keeps refusing them until a tested FLUX template exists, instead of writing a checkpoint graph that would not run.
+
 ## Exported graph
 
 The initial template uses only ComfyUI core nodes:

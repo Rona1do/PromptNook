@@ -4,8 +4,13 @@ All notable changes will be documented here. The format follows Keep a Changelog
 
 ## [Unreleased]
 
+### Added
+
+- Import a ComfyUI PNG, workflow JSON, or A1111 parameters file into a recipe from the browser and desktop library. A PNG becomes the recipe cover. Diffusion-model graphs are saved and marked so checkpoint export does not build the wrong graph.
+
 ### Changed
 
+- The browser workspace now opens on a checkpoint recipe that can be exported, with sample covers and a first-step link to that export. FLUX sample recipes stay visible and marked Export later.
 - Refined the repository landing page, public social preview, search metadata, and browser-demo discovery metadata around PromptNook's concrete ComfyUI recipe-to-workflow use case.
 - Made the browser-versus-desktop feature boundary and current unsigned Windows preview easier to understand before download.
 - Added a visible in-app GitHub entry point so browser and desktop users can find the source, star the project, or share feedback after trying it.

@@ -2,7 +2,7 @@
   <img src="public/promptnook-icon.png" alt="PromptNook icon" width="128" />
   <h1>PromptNook</h1>
   <p><strong>A local-first recipe library for ComfyUI creators.</strong></p>
-  <p>Keep prompts, checkpoints, ordered LoRAs, trigger words, and generation settings together — then export an editable workflow.</p>
+  <p>Drop a finished image or workflow. Keep the checkpoint, LoRAs, prompt, and settings. Export an editable graph.</p>
 
   [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
   [![Browser workspace: ready](https://img.shields.io/badge/browser_workspace-ready-238636.svg)](https://rona1do.github.io/PromptNook/)
@@ -14,13 +14,19 @@
   [ComfyUI export details](docs/COMFYUI_EXPORT.md)
 </div>
 
-> Built for people whose successful generations are scattered across text files, PNG metadata, model folders, and memory. PromptNook is a standalone library and workflow companion—not a prompt generator, image generator, or ComfyUI custom node.
-
-**Project status:** the browser workspace is ready for everyday use and includes backup/restore. The Windows desktop app remains a beta while clean-machine installation, upgrade, and cross-machine backup recovery are verified and trusted signing is arranged.
+Drop a ComfyUI PNG or workflow JSON into the [browser workspace](https://rona1do.github.io/PromptNook/). PromptNook turns that generation into a recipe — checkpoint or diffusion model, ordered LoRAs, prompts, and sampler settings — and can export a checkpoint text-to-image graph back to ComfyUI. No account. The library stays in that browser.
 
 ![PromptNook to ComfyUI workflow demo](docs/promptnook-comfyui-demo.gif)
 
 [简体中文](README.zh-CN.md)
+
+## Try it in 60 seconds
+
+1. Open the [browser workspace](https://rona1do.github.io/PromptNook/).
+2. Drop a ComfyUI PNG or a workflow JSON onto **Recipes**. The prompt, model, ordered LoRAs, and sampler settings become a recipe, and a PNG becomes its cover.
+3. Open that recipe, or the starter **Neon street in the rain**, and choose **Export ComfyUI workflow**. Load the JSON in ComfyUI.
+
+Checkpoint text-to-image graphs export today. A FLUX or other diffusion-model graph is saved and marked **Export later**. The Windows desktop app remains an unsigned beta: it adds folder scanning, SQLite, and verified backups, and Windows may show a SmartScreen warning.
 
 ## Choose how to try it
 
@@ -31,15 +37,7 @@
 | Included | Persistent recipes, snippets, Studio, JSON backup, ComfyUI export | Everything in the browser workspace, plus folder scanning, SQLite, credential protection, and verified portable backups |
 | Data | Stays in this browser | Stays on your computer |
 
-The browser workspace is not a static mockup. You can edit the starter recipes, download a real ComfyUI Workflow JSON 0.4 file, close the tab, and return to your saved work later.
-
-## Try it in 60 seconds
-
-1. Open the [browser workspace](https://rona1do.github.io/PromptNook/); no account or installation is required.
-2. Open **Neon street in the rain** to inspect its checkpoint, prompt, and generation settings.
-3. Choose **Export ComfyUI workflow** and load the downloaded JSON in ComfyUI.
-
-Your edits persist in that browser through local storage. Use **Settings → Backup & export** to download a versioned browser workspace backup before clearing site data. The desktop build adds local checkpoint/LoRA folder scanning, SQLite storage, verified portable backups, and operating-system credential protection.
+The browser workspace is not a static mockup. You can import your own generations, edit the starter recipes, download a real ComfyUI Workflow JSON 0.4 file, close the tab, and return to your saved work later. Use **Settings → Backup & export** before clearing site data.
 
 ## Why PromptNook?
 
@@ -56,6 +54,7 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 
 ## Highlights
 
+- **Import what you already generated** — drop a ComfyUI PNG, workflow JSON, or A1111 parameters file. The checkpoint or diffusion model, ordered LoRAs, prompts, size, sampler, steps, CFG, and seed become one recipe, and a PNG becomes the cover.
 - **Working browser workspace** — create and edit recipes and snippets with browser-local persistence, then download checkpoint-based ComfyUI workflows without installing PromptNook.
 - **Browser backup and restore** — download a versioned JSON workspace, validate it before restore, or reset to the current English starter workspace. Translation credentials are never exported.
 - **ComfyUI workflow export** — produce an editable Workflow JSON 0.4 graph with checkpoint, ordered LoRAs, prompts, size, sampler, scheduler, steps, CFG, and seed already connected.
@@ -76,12 +75,6 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 ![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
 The screenshots use repository sample data. They do not contain a maintainer's private library or filesystem paths.
-
-## Project language policy
-
-English is the repository and interface language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic: users can enter any target supported by their configured translation provider.
-
-The current interface and starter workspace are English. Prompt content can use any language. A complete Simplified Chinese UI locale and localized low-level diagnostics remain on the roadmap; **Prompt translation** translates prompt content and does not change the interface language.
 
 ## ComfyUI export
 
@@ -134,6 +127,12 @@ Translation is disabled by default. When enabled, only text selected for transla
 ## Data location
 
 On Windows, PromptNook stores its desktop data under `%LOCALAPPDATA%\PromptNook\vault`. This is intentionally separate from older/private builds. Choose a second physical drive for backups when possible.
+
+## Project language policy
+
+English is the repository and interface language so contributors can collaborate globally. Simplified Chinese documentation remains available because it is useful, not because prompt content is tied to Chinese. Prompt content and translation targets are language-agnostic: users can enter any target supported by their configured translation provider.
+
+The current interface and starter workspace are English. Prompt content can use any language. A complete Simplified Chinese UI locale and localized low-level diagnostics remain on the roadmap; **Prompt translation** translates prompt content and does not change the interface language.
 
 ## Contributing
 

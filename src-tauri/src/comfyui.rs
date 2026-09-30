@@ -371,6 +371,16 @@ fn resolve_checkpoint(
             warnings,
         ));
     }
+    // Keep this phrase aligned with DIFFUSION_IMPORT_MARKER in src/lib/comfyuiImport.ts.
+    if recipe
+        .notes
+        .contains("Imported from a diffusion-model graph")
+    {
+        return Err(
+            "This recipe uses a diffusion-model resource. The first exporter supports checkpoint workflows only; a FLUX template will be added separately."
+                .into(),
+        );
+    }
     if let Some(name) = recipe
         .model_name
         .as_deref()
@@ -612,6 +622,17 @@ mod tests {
             "C:\\ComfyUI\\models\\diffusion_models\\flux1-dev.safetensors",
         )];
         let error = build_comfyui_workflow(&recipe(), &resources, &settings()).unwrap_err();
+        assert!(error.contains("FLUX template"));
+    }
+
+    #[test]
+    fn rejects_an_imported_diffusion_graph_without_a_catalog_resource() {
+        let mut input = recipe();
+        input.model_id = None;
+        input.model_name = Some("flux1-dev-fp8.safetensors".into());
+        input.notes = "Imported from a diffusion-model graph. Checkpoint export is unavailable until a FLUX template exists.".into();
+        input.loras.clear();
+        let error = build_comfyui_workflow(&input, &[], &settings()).unwrap_err();
         assert!(error.contains("FLUX template"));
     }
 }

@@ -789,10 +789,19 @@ function App() {
             <div className="browser-workspace-banner" role="status">
               <CheckCircle2 size={18} />
               <p>
-                <strong>Your changes persist in this browser.</strong>{" "}
-                Create and edit recipes, download ComfyUI workflows, and export
-                a browser backup from Settings. Local folder scanning and
-                verified desktop snapshots remain desktop-only.
+                <strong>Try this first.</strong> Open{" "}
+                <button
+                  type="button"
+                  className="banner-link"
+                  onClick={() => {
+                    setPage("recipes");
+                    setRequested({ type: "recipe", id: "recipe-rain" });
+                  }}
+                >
+                  Neon street in the rain
+                </button>{" "}
+                and choose Export ComfyUI workflow. Checkpoint recipes download
+                as an editable graph. The library stays in this browser.
               </p>
             </div>
           ) : null}

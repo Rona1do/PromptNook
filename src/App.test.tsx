@@ -24,7 +24,7 @@ describe("PromptNook browser fallback smoke", () => {
     }
     expect(screen.getByText("Browser workspace")).toBeInTheDocument();
     expect(
-      screen.getByText("Your changes persist in this browser."),
+      screen.getByText("Try this first."),
     ).toBeInTheDocument();
 
     fireEvent.click(
