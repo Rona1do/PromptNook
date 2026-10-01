@@ -539,7 +539,7 @@ function App() {
     >
       <aside className={clsx("app-sidebar", sidebarOpen && "is-mobile-open")}>
         <div className="brand">
-          <img src="/promptnook-icon.png" alt="" />
+          <img src={`${import.meta.env.BASE_URL}promptnook-icon.png`} alt="" />
           <div>
             <strong>PromptNook</strong>
             <span>Your local prompt studio</span>
