@@ -959,7 +959,7 @@ async function inflateZlib(data: Uint8Array): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error("compressed PNG text is unavailable");
   }
-  const stream = new Blob([data])
+  const stream = new Blob([new Uint8Array(data)])
     .stream()
     .pipeThrough(new DecompressionStream("deflate"));
   return new Uint8Array(await new Response(stream).arrayBuffer());
