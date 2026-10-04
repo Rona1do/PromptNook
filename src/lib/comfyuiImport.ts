@@ -5,13 +5,14 @@ import type {
   RecipeLora,
   Resource,
   ResourceType,
+  SourceWorkflow,
 } from "../types";
 
 /** Kept in sync with the desktop exporter in src-tauri/src/comfyui.rs. */
 export const DIFFUSION_IMPORT_MARKER = "Imported from a diffusion-model graph";
 
 export const DIFFUSION_IMPORT_NOTE =
-  "Imported from a diffusion-model graph. Checkpoint export is unavailable until a FLUX template exists.";
+  "Imported from a diffusion-model graph. Export the preserved original graph; generating a new graph from recipe edits still needs a FLUX template.";
 
 export const DIFFUSION_EXPORT_ERROR =
   "This recipe uses a diffusion-model resource. The first exporter supports checkpoint workflows only; a FLUX template will be added separately.";
@@ -41,6 +42,7 @@ export interface ImportedRecipeDraft {
   params: GenerationParams;
   notes: string;
   warnings: string[];
+  sourceWorkflow?: SourceWorkflow;
 }
 
 interface NormalizedNode {
@@ -174,7 +176,7 @@ export function importRecipeFromText(
     } catch {
       throw new ComfyImportError("This JSON file could not be parsed.");
     }
-    return importFromJson(parsed, fileName);
+    return importFromJson(parsed, fileName, trimmed);
   }
   if (/negative prompt\s*:/i.test(trimmed) || /\bsteps\s*:/i.test(trimmed)) {
     return importFromA1111(trimmed, fileName);
@@ -293,26 +295,75 @@ export function toRecipeInput(
     assets: [],
     tagIds: [],
     notes: notes.filter(Boolean).join("\n"),
+    sourceWorkflow: draft.sourceWorkflow,
     favorite: false,
     rating: 0,
     usageCount: 0,
   };
 }
 
-function importFromJson(value: unknown, fileName?: string): ImportedRecipeDraft {
+function importFromJson(value: unknown, fileName?: string, json?: string): ImportedRecipeDraft {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new ComfyImportError("This JSON file is not a ComfyUI workflow.");
   }
   const record = value as Record<string, unknown>;
-  if (Array.isArray(record.nodes)) return importUiWorkflow(record, fileName);
+  if (Array.isArray(record.nodes)) return {
+    ...importUiWorkflow(record, fileName),
+    sourceWorkflow: { format: "workflow", fileName, graph: structuredClone(record), json },
+  };
   if (record.workflow && typeof record.workflow === "object") {
-    return importFromJson(record.workflow, fileName);
+    return importFromJson(record.workflow, fileName, json ? jsonMember(json, "workflow") : undefined);
   }
-  if (isApiPrompt(record)) return importApiPrompt(record, fileName);
+  if (isApiPrompt(record)) return {
+    ...importApiPrompt(record, fileName),
+    sourceWorkflow: { format: "api_prompt", fileName, graph: structuredClone(record), json },
+  };
   if (record.prompt && typeof record.prompt === "object" && isApiPrompt(record.prompt)) {
-    return importApiPrompt(record.prompt as Record<string, unknown>, fileName);
+    return importFromJson(record.prompt, fileName, json ? jsonMember(json, "prompt") : undefined);
   }
   throw new ComfyImportError("This JSON file has no ComfyUI nodes or prompt graph.");
+}
+
+// Extract a value from an already validated JSON envelope without rounding
+// large integer seeds by reserializing the parsed JavaScript object.
+function jsonMember(json: string, name: string): string | undefined {
+  let cursor = json.indexOf("{") + 1;
+  let result: string | undefined;
+  const whitespace = () => { while (cursor < json.length && /\s/.test(json[cursor])) cursor++; };
+  const quoted = () => {
+    cursor++;
+    while (cursor < json.length) {
+      const char = json[cursor++];
+      if (char === "\\") cursor++;
+      else if (char === '"') break;
+    }
+  };
+  while (cursor < json.length) {
+    whitespace();
+    if (json[cursor] === "}") break;
+    const keyStart = cursor;
+    quoted();
+    const key = JSON.parse(json.slice(keyStart, cursor));
+    whitespace(); cursor++; whitespace();
+    const valueStart = cursor;
+    if (json[cursor] === '"') quoted();
+    else if (json[cursor] === "{" || json[cursor] === "[") {
+      let depth = 0;
+      do {
+        const char = json[cursor];
+        if (char === '"') { quoted(); continue; }
+        if (char === "{" || char === "[") depth++;
+        if (char === "}" || char === "]") depth--;
+        cursor++;
+      } while (depth > 0 && cursor < json.length);
+    } else {
+      while (cursor < json.length && !/[,}]/.test(json[cursor])) cursor++;
+    }
+    if (key === name) result = json.slice(valueStart, cursor).trim();
+    whitespace();
+    if (json[cursor] === ",") cursor++;
+  }
+  return result;
 }
 
 function importUiWorkflow(
@@ -470,9 +521,7 @@ function recipeFromNodes(
     params.steps == null &&
     params.width == null
   ) {
-    throw new ComfyImportError(
-      "No prompt, model, or sampler settings were found in this file.",
-    );
+    warnings.push("No standard prompt, model, or sampler settings were found. The original graph is preserved for export; review it in ComfyUI.");
   }
 
   const notes = [`Imported from a ${source}${fileName ? ` (${fileName})` : ""}.`];
@@ -835,12 +884,23 @@ export function matchResource(
   const base = basename(reference).toLocaleLowerCase();
   const stemName = fileStem(reference).toLocaleLowerCase();
   if (!base) return undefined;
-  return resources.find((resource) => {
+  const candidates = resources.filter((resource) => !resourceType || resource.resourceType === resourceType);
+  const normalized = reference.trim().replace(/\\/g, "/").toLocaleLowerCase();
+  const exact = candidates.filter((resource) => {
+    const path = resource.path.replace(/\\/g, "/").toLocaleLowerCase();
+    return path === normalized || path.endsWith(`/${normalized}`);
+  });
+  if (exact.length) return exact.length === 1 ? exact[0] : undefined;
+  // A subfolder is part of a ComfyUI resource's identity. Do not silently
+  // map style/model.safetensors onto another/model.safetensors.
+  if (normalized.includes("/")) return undefined;
+  const matches = candidates.filter((resource) => {
     if (resourceType && resource.resourceType !== resourceType) return false;
     const pathBase = basename(resource.path).toLocaleLowerCase();
     const name = resource.name.trim().toLocaleLowerCase();
     return pathBase === base || name === base || name === stemName;
   });
+  return matches.length === 1 ? matches[0] : undefined;
 }
 
 function matchModel(

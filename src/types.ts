@@ -84,6 +84,8 @@ export interface Recipe {
   coverAssetId?: EntityId;
   tagIds: EntityId[];
   notes: string;
+  /** Imported graph snapshot; recipe edits never mutate this original. */
+  sourceWorkflow?: SourceWorkflow;
   favorite: boolean;
   rating: number;
   usageCount: number;
@@ -91,6 +93,14 @@ export interface Recipe {
   promptModel: PromptModelId | string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SourceWorkflow {
+  format: "workflow" | "api_prompt";
+  fileName?: string;
+  graph: Record<string, unknown>;
+  /** Original JSON preserves integer seeds beyond JavaScript's safe range. */
+  json?: string;
 }
 
 export interface Snippet {

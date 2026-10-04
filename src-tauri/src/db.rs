@@ -8,7 +8,7 @@ use std::{
     time::Duration,
 };
 
-pub const SCHEMA_VERSION: i64 = 5;
+pub const SCHEMA_VERSION: i64 = 6;
 
 #[derive(Debug, Clone)]
 pub struct VaultPaths {
@@ -435,6 +435,22 @@ pub fn migrate(conn: &mut Connection) -> Result<(), String> {
     let after = schema_version(conn)?;
     if after == 4 {
         migrate_to_v5(conn)?;
+    }
+    if schema_version(conn)? == 5 {
+        let tx = conn
+            .transaction()
+            .map_err(|error| format!("Could not begin workflow migration: {error}"))?;
+        let has_column: bool = tx.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('recipes') WHERE name='source_workflow_json')", [], |row| row.get(0)
+        ).map_err(|error| format!("Could not inspect workflow storage: {error}"))?;
+        if !has_column {
+            tx.execute_batch("ALTER TABLE recipes ADD COLUMN source_workflow_json TEXT;")
+                .map_err(|error| format!("Could not preserve source workflows: {error}"))?;
+        }
+        tx.execute_batch("PRAGMA user_version=6;")
+            .map_err(|error| format!("Could not update workflow storage version: {error}"))?;
+        tx.commit()
+            .map_err(|error| format!("Could not commit workflow migration: {error}"))?;
     }
     Ok(())
 }
@@ -1080,5 +1096,25 @@ mod tests {
             ));
         drop(upgraded);
         let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn v5_workflow_migration_preserves_existing_recipe_rows() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        migrate(&mut conn).unwrap();
+        conn.execute_batch("INSERT INTO recipes(id,title,created_at,updated_at) VALUES('legacy','Keep me','before','before');
+            ALTER TABLE recipes DROP COLUMN source_workflow_json; PRAGMA user_version=5;").unwrap();
+        migrate(&mut conn).unwrap();
+        let (title, source): (String, Option<String>) = conn
+            .query_row(
+                "SELECT title,source_workflow_json FROM recipes WHERE id='legacy'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(title, "Keep me");
+        assert!(source.is_none());
+        assert_eq!(schema_version(&conn).unwrap(), 6);
+        migrate(&mut conn).unwrap();
     }
 }

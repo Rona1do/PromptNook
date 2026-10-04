@@ -15,7 +15,13 @@
 
 Until trusted Windows signing is approved, maintainers may publish source-only prereleases or attach clearly labelled unsigned preview installers. Current `0.2.x` prereleases use the latter path. Include `UNSIGNED` in the installer asset name, provide SHA-256 checksums, disclose the signature status in release notes, link to the browser workspace, and list known compatibility boundaries. Do not ask users to disable antivirus or other security protections. The manual Windows preview workflow produces an installer and checksum artifact without automatically publishing it.
 
-## Release notes
+## Automated beta publication
+
+Push a matching `v*-beta.*` tag after updating versions and adding `docs/releases/<tag>.md`. The **Publish Windows preview** workflow validates the tag, runs frontend and browser tests plus Rust formatting/Clippy/tests, builds on a fresh Windows runner, prepares an explicitly `UNSIGNED` installer and SHA-256 checksums, uploads a draft release, and publishes it after asset upload succeeds. The workflow can also be retried manually with an existing beta tag. Check its completion and verify the public assets before announcing the release.
+
+The automated build does not replace clean-machine installation, upgrade, uninstall, or cross-machine restore testing. Record those checks separately and retain the beta designation while stable gates remain unmet.
+
+## Release-note contents
 
 Call out database migrations, backup compatibility, new network behavior, platform support, and known limitations. Never claim macOS or Linux support based only on compilation.
 

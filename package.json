@@ -1,7 +1,7 @@
 {
   "name": "promptnook",
   "private": true,
-  "version": "0.2.3-beta.1",
+  "version": "0.3.0-beta.1",
   "description": "A local-first prompt, model, and LoRA recipe library with editable ComfyUI workflow export",
   "license": "MIT",
   "homepage": "https://github.com/Rona1do/PromptNook#readme",

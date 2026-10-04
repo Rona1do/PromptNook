@@ -2,10 +2,10 @@
   <img src="public/promptnook-icon.png" alt="PromptNook 图标" width="128" />
   <h1>PromptNook</h1>
   <p><strong>为 ComfyUI 创作者设计的本地优先配方库。</strong></p>
-  <p>丢进一张已经出好的图或工作流，收下 checkpoint、LoRA、Prompt 和参数，再导出可编辑的图。</p>
+  <p>批量整理已有出图，比较配方和结果，保留并导出原始 ComfyUI 图。</p>
 
   **[立即体验浏览器 Demo →](https://rona1do.github.io/PromptNook/)** ·
-  **[下载 Windows 预览版](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)** ·
+  **[下载 Windows 预览版](https://github.com/Rona1do/PromptNook/releases/tag/v0.3.0-beta.1)** ·
   [ComfyUI 导出说明](docs/COMFYUI_EXPORT.md)
 </div>
 
@@ -19,9 +19,9 @@
 
 1. 打开[浏览器工作区](https://rona1do.github.io/PromptNook/)。
 2. 把一张或一批 ComfyUI PNG、workflow JSON 拖到 **Recipes**。预览 Prompt、模型、LoRA 和采样设置，勾选后点击 **Import selected** 入库，PNG 会成为封面；重复配方默认不勾选。
-3. 打开这条配方，或示例 **Neon street in the rain**，点击 **Export ComfyUI workflow**，再把 JSON 载入 ComfyUI。
+3. 打开导入的配方，点击 **Export original graph** 取回原始工作流。checkpoint 配方或示例 **Neon street in the rain** 可通过 **Export ComfyUI workflow** 按已保存字段重新生成节点图。点击 **Compare recipes** 比较出图和参数差异。
 
-基于 checkpoint 的文生图现在就可以导出。FLUX 或其他 diffusion model 图会保存下来，并标成 **Export later**。Windows 桌面版仍是未签名 beta：它额外提供目录扫描、SQLite 和可校验备份，安装时 Windows 可能会出现 SmartScreen 警告。
+导入的 FLUX 和自定义节点图可通过 **Export original graph** 按原样导出；配方编辑不会覆盖原图，按编辑后的 FLUX 配方重新生成图仍需专用模板。Windows 桌面版仍为未签名 beta，额外提供目录扫描、SQLite 和可校验备份，安装时可能出现 SmartScreen 警告。桌面数据库升级到 schema 6，升级前请备份。
 
 ## 选择体验方式
 
@@ -42,6 +42,8 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 ## 主要功能
 
+- **保留原始工作流**：JSON 和 PNG 导入保留 ComfyUI 原图，包括 FLUX、自定义节点、连接、布局及大整数种子。可单独导出原图，模型与自定义节点仍需在 ComfyUI 中安装。
+- **配方和出图对比**：并排查看两个结果，突出 Prompt、LoRA 与采样参数差异，并可仅显示变化字段；隐私模式隐藏 Prompt、备注和图片。
 - **批量导入预览与去重**：一次选择多张出图和工作流，入库前查看封面、Prompt、模型与参数。当前工作区或本批次中生成信息完全一致的配方默认跳过；不同种子会分别保留。错误逐项显示，保存失败可重试，已成功的条目不会再次保存。
 - **导入已经出好的图**：拖入 ComfyUI PNG、workflow JSON 或 A1111 参数文本。checkpoint 或 diffusion model、按顺序的 LoRA、正负 Prompt、尺寸、采样器、步数、CFG 和种子会收成一条配方，PNG 成为封面。
 - **可实际使用的浏览器工作区**：创建和编辑配方、片段与工作区，刷新后数据仍在，并可直接下载 checkpoint 类型的 ComfyUI 工作流。
@@ -64,11 +66,13 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 ![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
+![并排比较出图与生成参数](docs/screenshots/recipe-comparison.png)
+
 截图使用仓库自带的示例数据，不包含维护者的私人资料库或个人文件路径。
 
 ## ComfyUI 导出
 
-在浏览器工作区或 Windows 桌面版中打开已有配方，点击 **Export ComfyUI workflow**，即可下载或写出可编辑的 ComfyUI Workflow JSON 0.4 文件。当前版本使用 ComfyUI 核心节点，支持基于 checkpoint 的文生图配方；FLUX/diffusion model 需要不同的节点图模板，因此当前会明确提示不支持，而不是生成看似成功但无法正确运行的文件。兼容性和字段映射见 [docs/COMFYUI_EXPORT.md](docs/COMFYUI_EXPORT.md)。
+通过 **Export original graph** 按原样导出导入的 UI 工作流或 API prompt，包括 FLUX 和自定义节点。通过 **Export ComfyUI workflow** 根据已保存的 checkpoint 文生图配方重新生成可编辑节点图，并提示缺失的资源引用。按编辑后的 FLUX 配方重新生成图仍需专用模板。兼容性和字段映射见 [docs/COMFYUI_EXPORT.md](docs/COMFYUI_EXPORT.md)。
 
 ## 当前平台
 

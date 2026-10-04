@@ -2,19 +2,19 @@
   <img src="public/promptnook-icon.png" alt="PromptNook icon" width="128" />
   <h1>PromptNook</h1>
   <p><strong>A local-first recipe library for ComfyUI creators.</strong></p>
-  <p>Drop a finished image or workflow. Keep the checkpoint, LoRAs, prompt, and settings. Export an editable graph.</p>
+  <p>Organize a batch of generations. Compare the recipes behind your results. Keep and export the original ComfyUI graph.</p>
 
   [![CI](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml/badge.svg)](https://github.com/Rona1do/PromptNook/actions/workflows/ci.yml)
   [![Browser workspace: ready](https://img.shields.io/badge/browser_workspace-ready-238636.svg)](https://rona1do.github.io/PromptNook/)
-  [![Windows desktop: beta](https://img.shields.io/badge/Windows_desktop-beta-d97706.svg)](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)
+  [![Windows desktop: beta](https://img.shields.io/badge/Windows_desktop-beta-d97706.svg)](https://github.com/Rona1do/PromptNook/releases/tag/v0.3.0-beta.1)
   [![License: MIT](https://img.shields.io/badge/License-MIT-5d5fef.svg)](LICENSE)
 
   **[Try the live browser demo →](https://rona1do.github.io/PromptNook/)** ·
-  **[Download the Windows preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.2.3-beta.1)** ·
+  **[Download the Windows preview](https://github.com/Rona1do/PromptNook/releases/tag/v0.3.0-beta.1)** ·
   [ComfyUI export details](docs/COMFYUI_EXPORT.md)
 </div>
 
-Drop a ComfyUI PNG or workflow JSON into the [browser workspace](https://rona1do.github.io/PromptNook/). PromptNook turns that generation into a recipe — checkpoint or diffusion model, ordered LoRAs, prompts, and sampler settings — and can export a checkpoint text-to-image graph back to ComfyUI. No account. The library stays in that browser.
+Drop your ComfyUI PNGs or workflow JSON into the [browser workspace](https://rona1do.github.io/PromptNook/). Review and organize recipes, skip duplicates, compare results, and export a preserved original graph, including FLUX and custom nodes. Saved checkpoint text-to-image recipes can also generate a new editable graph. No account. The library stays in that browser.
 
 ![PromptNook to ComfyUI workflow demo](docs/promptnook-comfyui-demo.gif)
 
@@ -24,9 +24,9 @@ Drop a ComfyUI PNG or workflow JSON into the [browser workspace](https://rona1do
 
 1. Open the [browser workspace](https://rona1do.github.io/PromptNook/).
 2. Drop one or more ComfyUI PNGs or workflow JSON files onto **Recipes**. Review the prompts, models, LoRAs, and settings, then choose **Import selected**. PNGs become covers; matching generation duplicates are unchecked by default.
-3. Open that recipe, or the starter **Neon street in the rain**, and choose **Export ComfyUI workflow**. Load the JSON in ComfyUI.
+3. Open an imported recipe and choose **Export original graph** to get its unchanged graph. For a saved checkpoint recipe, or the starter **Neon street in the rain**, choose **Export ComfyUI workflow** to build a graph from recipe fields. Use **Compare recipes** to inspect result and parameter differences.
 
-Checkpoint text-to-image graphs export today. A FLUX or other diffusion-model graph is saved and marked **Export later**. The Windows desktop app remains an unsigned beta: it adds folder scanning, SQLite, and verified backups, and Windows may show a SmartScreen warning.
+Imported FLUX and custom-node graphs export unchanged through **Export original graph**. Rebuilding a graph from edited FLUX recipe fields still needs a dedicated template. The Windows app remains an unsigned beta; it adds folder scanning, SQLite, and verified backups. Windows may show a SmartScreen warning. Desktop schema upgrades to 6; back up before upgrading.
 
 ## Choose how to try it
 
@@ -54,6 +54,8 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 
 ## Highlights
 
+- **Keep the original graph** — JSON and PNG imports preserve ComfyUI UI workflows or API prompts, including custom nodes, FLUX, layout, and full integer seeds. Export the original independently of recipe edits; required models and custom nodes remain your ComfyUI installation's responsibility.
+- **Compare results and settings** — view two saved covers side by side, highlight prompt, LoRA, and sampling differences, and show only changed fields. Privacy mode hides prompt text, notes, and images.
 - **Batch review and duplicate detection** — preview covers, prompts, models, and settings before importing. Matching generation data in the active workspace or incoming batch is skipped by default; different seeds stay separate. File errors remain visible and failed saves can be retried without saving successful entries again.
 - **Import what you already generated** — drop a ComfyUI PNG, workflow JSON, or A1111 parameters file. The checkpoint or diffusion model, ordered LoRAs, prompts, size, sampler, steps, CFG, and seed become one recipe, and a PNG becomes the cover.
 - **Working browser workspace** — create and edit recipes and snippets with browser-local persistence, then download checkpoint-based ComfyUI workflows without installing PromptNook.
@@ -75,11 +77,13 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 
 ![PromptNook Prompt Studio](docs/screenshots/studio.png)
 
+![Compare saved results and generation settings](docs/screenshots/recipe-comparison.png)
+
 The screenshots use repository sample data. They do not contain a maintainer's private library or filesystem paths.
 
 ## ComfyUI export
 
-Open an existing recipe in the browser workspace or Windows desktop app and choose **Export ComfyUI workflow**. PromptNook writes an editable ComfyUI Workflow JSON 0.4 file and reports any offline or unresolved model references. The current graph uses ComfyUI core nodes and supports checkpoint-based text-to-image recipes; FLUX/diffusion-model graphs are deliberately deferred to a dedicated template. See [the export design and compatibility notes](docs/COMFYUI_EXPORT.md).
+Use **Export original graph** for an imported UI workflow or API prompt, including FLUX and custom nodes. This exports the saved snapshot unchanged. Use **Export ComfyUI workflow** to regenerate a checkpoint text-to-image graph from saved recipe fields, with warnings for unresolved model references. Edited FLUX recipe fields still need a dedicated template. See [the export design and compatibility notes](docs/COMFYUI_EXPORT.md).
 
 ## Platform and release status
 

@@ -789,7 +789,7 @@ function App() {
             <div className="browser-workspace-banner" role="status">
               <CheckCircle2 size={18} />
               <p>
-                <strong>Try this first.</strong> Open{" "}
+                <strong>Try this first.</strong> Drop your ComfyUI images on Recipes to review and organize a batch. Or open{" "}
                 <button
                   type="button"
                   className="banner-link"
@@ -801,7 +801,7 @@ function App() {
                   Neon street in the rain
                 </button>{" "}
                 and choose Export ComfyUI workflow. Checkpoint recipes download
-                as an editable graph. The library stays in this browser.
+                as an editable graph. Imported original graphs can also be exported unchanged, including FLUX and custom nodes. The library stays in this browser.
               </p>
             </div>
           ) : null}

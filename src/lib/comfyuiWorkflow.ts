@@ -8,6 +8,7 @@ export interface BrowserComfyWorkflow {
   workflow: Record<string, unknown>;
   warnings: string[];
   fileName: string;
+  json?: string;
 }
 
 interface WorkflowLink {
@@ -359,7 +360,7 @@ export function buildBrowserComfyWorkflow(
 }
 
 export function downloadBrowserWorkflow(result: BrowserComfyWorkflow): void {
-  const blob = new Blob([JSON.stringify(result.workflow, null, 2)], {
+  const blob = new Blob([result.json ?? JSON.stringify(result.workflow, null, 2)], {
     type: "application/json;charset=utf-8",
   });
   const url = URL.createObjectURL(blob);

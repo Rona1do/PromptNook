@@ -107,6 +107,15 @@ afterEach(() => {
 });
 
 describe("browser fallback bootstrap", () => {
+  it("reports storage failures and rolls back unsaved recipe changes", async () => {
+    const before = await api.listRecipes();
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("Quota exceeded", "QuotaExceededError"); });
+    await expect(api.saveRecipe(makeRecipe({ id: "quota-failure" }))).rejects.toThrow("not saved");
+    expect(await api.listRecipes()).toEqual(before);
+    write.mockRestore();
+    await api.saveRecipe(makeRecipe({ id: "quota-failure" }));
+    expect((await api.listRecipes()).filter((item) => item.id === "quota-failure")).toHaveLength(1);
+  });
   it("loads a complete, internally consistent initial snapshot without Tauri", async () => {
     const data = await api.loadAll();
 
@@ -620,6 +629,18 @@ describe("resource scanning", () => {
 });
 
 describe("settings and backup fallback", () => {
+  it("round-trips original graph snapshots through browser backups and rejects malformed ones", async () => {
+    const graph = { version: 0.4, nodes: [{ id: 1, type: "CustomPipeline", widgets_values: ["original"], properties: { token: "keep this node field" } }], links: [] };
+    const saved = await api.saveRecipe(makeRecipe({ sourceWorkflow: { format: "workflow", graph } }));
+    const json = serializeBrowserWorkspaceBackup();
+    expect(validateBrowserWorkspaceBackup(json).recipes.find((item) => item.id === saved.id)?.sourceWorkflow?.graph).toEqual(graph);
+    await api.resetBrowserWorkspace();
+    await api.restoreBrowserWorkspace(json);
+    expect((await api.listRecipes()).find((item) => item.id === saved.id)?.sourceWorkflow?.graph).toEqual(graph);
+    const invalid = JSON.parse(json);
+    invalid.recipes.find((item: RecipeInput) => item.id === saved.id).sourceWorkflow.graph = { nodes: [] };
+    expect(() => validateBrowserWorkspaceBackup(JSON.stringify(invalid))).toThrow();
+  });
   it("persists cloned settings and exposes a newly created backup in dashboard state", async () => {
     const defaults = await api.getSettings();
     const saved = await api.saveSettings({

@@ -1,5 +1,6 @@
 import type { RecipeInput, Resource } from "../types";
 import { recipeExportDeferred } from "./comfyuiImport";
+import { canonicalGraph } from "./sourceWorkflow";
 
 // Compare generation content, not titles, covers, tags, or import notes. Keep
 // subfolders and prompt whitespace: collapsing them could hide distinct recipes.
@@ -16,6 +17,11 @@ export function recipeFingerprint(recipe: RecipeInput, resources: Resource[]): s
     model: reference(recipe.modelId, recipe.modelName),
     positive: prompt(recipe.positivePrompt),
     negative: prompt(recipe.negativePrompt),
+    // Distinct custom-node graphs must remain selectable even when their
+    // extracted prompt and sampling fields happen to match.
+    source: recipe.sourceWorkflow ? canonicalGraph(recipe.sourceWorkflow.graph) : null,
+    // Preserve distinct seeds beyond JavaScript's safe numeric range.
+    sourceJson: recipe.sourceWorkflow?.json ?? null,
     loras: [...recipe.loras].sort((a, b) => a.order - b.order).map((lora) => [
       reference(lora.resourceId, lora.name), lora.modelStrength, lora.clipStrength,
       lora.enabledTriggerWords,

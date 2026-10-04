@@ -1,0 +1,92 @@
+name: Publish Windows preview
+
+on:
+  push:
+    tags: ["v*-beta.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing beta tag to build and publish
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Validate release versions and notes
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -ne "v$version" -or $version -notmatch '-beta\.') { throw 'Tag must match the package beta version' }
+          $tauriVersion = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          if ($tauriVersion -ne $version) { throw 'Tauri version mismatch' }
+          $cargoVersion = [regex]::Match((Get-Content src-tauri/Cargo.toml -Raw), '(?m)^version = "([^"]+)"').Groups[1].Value
+          if ($cargoVersion -ne $version) { throw 'Cargo version mismatch' }
+          if (!(Test-Path "docs/releases/$env:RELEASE_TAG.md")) { throw 'Release notes are missing' }
+      - run: npm ci
+      - run: npm run check
+      - run: npx playwright install msedge
+      - run: npm run test:e2e
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+      - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - run: npm run tauri:build
+      - name: Prepare unsigned installer and checksums
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path preview-assets | Out-Null
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $installers = @(Get-ChildItem "src-tauri/target/release/bundle/nsis/PromptNook_${version}_x64-setup.exe")
+          if ($installers.Count -ne 1) { throw 'Expected exactly one Windows installer' }
+          $assetName = $installers[0].BaseName + '-UNSIGNED.exe'
+          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path preview-assets $assetName)
+          Get-ChildItem preview-assets/*.exe | ForEach-Object {
+            "$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
+          } | Set-Content preview-assets/SHA256SUMS.txt -Encoding utf8
+          Get-AuthenticodeSignature -FilePath "preview-assets/$assetName" | Select-Object Status,Path
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-unsigned-preview
+          path: preview-assets/
+          if-no-files-found: error
+      - name: Publish tested beta release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --verify-tag --draft --prerelease --title "PromptNook $env:RELEASE_TAG" --notes-file "docs/releases/$env:RELEASE_TAG.md"
+            if ($LASTEXITCODE -ne 0) { throw 'Release creation failed' }
+          }
+          $assets = @(Get-ChildItem -LiteralPath preview-assets -File | ForEach-Object { $_.FullName })
+          gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset upload failed' }
+          gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

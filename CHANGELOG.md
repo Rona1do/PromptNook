@@ -4,12 +4,34 @@ All notable changes will be documented here. The format follows Keep a Changelog
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-10-05
+
 ### Added
 
+- Preserve original ComfyUI UI workflows and API prompts from imported JSON or PNG metadata, including FLUX and custom-node graphs. Export the graph snapshot unchanged, independently of recipe-based checkpoint export.
+- Compare two saved recipes and their covers side by side, highlight changed prompts, ordered LoRAs, and sampling settings, and optionally show only differences. Privacy mode hides prompts, notes, and images.
+- SQLite schema 6 stores original graphs with recipes and includes them in revisions, JSON exports, and verified database backups. Existing schema 5 recipes migrate without losing fields; a pre-migration database snapshot is created by the desktop vault.
 - Review batch imports before saving: preview PNG covers, prompts, models, ordered LoRAs, and sampling settings; select recipes individually; skip exact generation duplicates in the active workspace and current batch by default. File and save errors remain visible, and retry only saves unfinished selections.
 - Import a ComfyUI PNG, workflow JSON, or A1111 parameters file into a recipe from the browser and desktop library. A PNG becomes the recipe cover. Diffusion-model graphs are saved and marked so checkpoint export does not build the wrong graph.
 
 ### Changed
+
+- The first-use banner now leads with organizing users' own images, and imported cards identify preserved original graphs.
+- Browser read operations no longer rewrite the entire workspace; writes are serialized and rejected changes are rolled back when storage is full or unavailable.
+
+### Fixed
+
+- Browser quota failures now report that changes were not saved instead of silently showing success.
+- Model and LoRA imports respect subfolders and leave ambiguous filenames unresolved instead of selecting the first unrelated catalog entry.
+- Browser backups preserve original node fields such as `token` while continuing to omit app translation credentials.
+- Original graph exports preserve large integer seeds without JavaScript rounding.
+
+### Compatibility
+
+- Original graph export does not apply recipe edits or install required models/custom nodes. API prompts remain API prompts. Rebuilding an edited FLUX recipe still requires a dedicated template.
+- Windows packages remain unsigned prereleases. macOS/Linux binaries and clean-machine installation/upgrade checks are not claimed as verified.
+
+### Discovery and onboarding
 
 - The browser workspace now opens on a checkpoint recipe that can be exported, with sample covers and a first-step link to that export. FLUX sample recipes stay visible and marked Export later.
 - Refined the repository landing page, public social preview, search metadata, and browser-demo discovery metadata around PromptNook's concrete ComfyUI recipe-to-workflow use case.

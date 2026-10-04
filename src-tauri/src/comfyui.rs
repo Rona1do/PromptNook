@@ -49,6 +49,7 @@ pub fn export_comfyui_workflow(
     state: State<'_, PromptVaultState>,
     recipe_id: String,
     target_path: Option<String>,
+    source: Option<String>,
 ) -> Result<ComfyWorkflowExportResult, String> {
     let conn = state
         .db
@@ -58,7 +59,19 @@ pub fn export_comfyui_workflow(
         .ok_or_else(|| "The prompt recipe no longer exists".to_string())?;
     let resources = list_resources_inner(&conn, None, None)?;
     let settings = get_app_settings(&conn)?;
-    let (workflow, warnings) = build_comfyui_workflow(&recipe, &resources, &settings)?;
+    let original = source.as_deref() == Some("original");
+    if source
+        .as_deref()
+        .is_some_and(|value| value != "recipe" && value != "original")
+    {
+        return Err("Unknown workflow export source".into());
+    }
+    let (workflow, warnings, format) = if original {
+        build_original_workflow(&recipe)?
+    } else {
+        let (graph, warnings) = build_comfyui_workflow(&recipe, &resources, &settings)?;
+        (graph, warnings, "ComfyUI Workflow JSON 0.4".to_string())
+    };
 
     let default_name = format!(
         "PromptNook-{}-{}.json",
@@ -83,8 +96,21 @@ pub fn export_comfyui_workflow(
     Ok(ComfyWorkflowExportResult {
         path: target.to_string_lossy().into_owned(),
         warnings,
-        format: "ComfyUI Workflow JSON 0.4".into(),
+        format,
     })
+}
+
+pub(crate) fn build_original_workflow(
+    recipe: &Recipe,
+) -> Result<(Value, Vec<String>, String), String> {
+    let source = recipe.source_workflow.as_ref().filter(|source| source.is_valid())
+        .ok_or_else(|| "This recipe has no saved original ComfyUI graph. Import its PNG or workflow JSON first.".to_string())?;
+    let format = if source.format == "api_prompt" {
+        "ComfyUI API prompt"
+    } else {
+        "Original ComfyUI workflow"
+    };
+    Ok((source.graph_value().map_err(|error| format!("Could not read original graph: {error}"))?, vec!["Original graph snapshot: recipe edits are not applied. Required models and custom nodes must be installed in ComfyUI.".into()], format.into()))
 }
 
 pub(crate) fn build_comfyui_workflow(
@@ -486,6 +512,7 @@ mod tests {
 
     fn recipe() -> Recipe {
         Recipe {
+            source_workflow: None,
             id: "recipe-1".into(),
             title: "Cinematic portrait".into(),
             status: "reproducible".into(),
@@ -634,5 +661,43 @@ mod tests {
         input.loras.clear();
         let error = build_comfyui_workflow(&input, &[], &settings()).unwrap_err();
         assert!(error.contains("FLUX template"));
+    }
+
+    #[test]
+    fn original_diffusion_graph_keeps_custom_nodes_and_ignores_recipe_edits() {
+        let graph = json!({"version": 0.4, "nodes": [
+            {"id": 1, "type": "UNETLoader", "widgets_values": ["flux.safetensors"]},
+            {"id": 2, "type": "CustomPipeline", "properties": {"keep": true}}
+        ], "links": [], "extra": {"layout": [12, 34]}});
+        let mut input = recipe();
+        input.source_workflow = Some(crate::models::SourceWorkflow {
+            format: "workflow".into(),
+            file_name: Some("flux.json".into()),
+            graph: graph.clone(),
+            json: None,
+        });
+        input.positive_prompt = "changed after import".into();
+        let (exported, warnings, format) = build_original_workflow(&input).unwrap();
+        assert_eq!(exported, graph);
+        assert_eq!(format, "Original ComfyUI workflow");
+        assert!(warnings[0].contains("recipe edits are not applied"));
+        assert!(build_original_workflow(&recipe()).is_err());
+    }
+
+    #[test]
+    fn original_json_preserves_full_u64_seed() {
+        let raw = r#"{"nodes":[{"id":1,"type":"CustomPipeline","widgets_values":[18446744073709551615]}]}"#;
+        let mut input = recipe();
+        input.source_workflow = Some(crate::models::SourceWorkflow {
+            format: "workflow".into(),
+            file_name: None,
+            graph: json!({"nodes": [{"id": 1, "type": "CustomPipeline"}]}),
+            json: Some(raw.into()),
+        });
+        let (graph, _, _) = build_original_workflow(&input).unwrap();
+        assert_eq!(
+            graph["nodes"][0]["widgets_values"][0].as_u64(),
+            Some(u64::MAX)
+        );
     }
 }

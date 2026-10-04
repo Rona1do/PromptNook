@@ -134,6 +134,18 @@ fn recipe_from_row(row: &Row<'_>) -> rusqlite::Result<Recipe> {
             seed: row.get(16)?,
         },
         notes: row.get(17)?,
+        source_workflow: row
+            .get::<_, Option<String>>(26)?
+            .map(|text| {
+                serde_json::from_str(&text).map_err(|error| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        26,
+                        rusqlite::types::Type::Text,
+                        Box::new(error),
+                    )
+                })
+            })
+            .transpose()?,
         favorite: row.get::<_, i64>(18)? != 0,
         rating: row.get(19)?,
         usage_count: row.get(20)?,
@@ -190,7 +202,7 @@ fn tag_ids_for_recipe(conn: &Connection, recipe_id: &str) -> Result<Vec<String>,
 const RECIPE_SELECT: &str = "SELECT id,title,status,modality,positive_prompt,negative_prompt,
             positive_translation,negative_translation,model_id,model_name,width,height,sampler,
             scheduler,steps,cfg,seed,notes,favorite,rating,usage_count,loras_json,
-            cover_asset_id,created_at,updated_at,prompt_model
+            cover_asset_id,created_at,updated_at,prompt_model,source_workflow_json
      FROM recipes";
 
 pub fn find_recipe(
@@ -318,6 +330,13 @@ pub fn get_recipe(
 }
 
 fn validate_recipe_input(input: &SaveRecipeInput) -> Result<(), String> {
+    if input
+        .source_workflow
+        .as_ref()
+        .is_some_and(|source| !source.is_valid())
+    {
+        return Err("The original ComfyUI graph is invalid; the recipe was not saved".into());
+    }
     if input.status != "draft" && input.status != "reproducible" {
         return Err("状态只能是 draft 或 reproducible".into());
     }
@@ -482,10 +501,10 @@ fn save_recipe_inner(state: &PromptVaultState, input: SaveRecipeInput) -> Result
            id,title,status,modality,positive_prompt,negative_prompt,
            positive_translation,negative_translation,model_id,model_name,width,height,sampler,
            scheduler,steps,cfg,seed,notes,favorite,rating,usage_count,components_json,loras_json,
-           parameters_json,cover_asset_id,prompt_model,created_at,updated_at,deleted_at
+           parameters_json,cover_asset_id,prompt_model,created_at,updated_at,deleted_at,source_workflow_json
          ) VALUES (
            ?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,
-           ?18,?19,?20,?21,'[]',?22,?23,?24,?25,?26,?27,NULL
+           ?18,?19,?20,?21,'[]',?22,?23,?24,?25,?26,?27,NULL,?28
          )
          ON CONFLICT(id) DO UPDATE SET
            title=excluded.title,status=excluded.status,modality=excluded.modality,
@@ -499,6 +518,7 @@ fn save_recipe_inner(state: &PromptVaultState, input: SaveRecipeInput) -> Result
            usage_count=excluded.usage_count,components_json=excluded.components_json,loras_json=excluded.loras_json,
            parameters_json=excluded.parameters_json,cover_asset_id=excluded.cover_asset_id,
            prompt_model=excluded.prompt_model,
+           source_workflow_json=excluded.source_workflow_json,
            updated_at=excluded.updated_at,deleted_at=NULL",
         params![
             id,
@@ -530,7 +550,8 @@ fn save_recipe_inner(state: &PromptVaultState, input: SaveRecipeInput) -> Result
                 .as_ref()
                 .map(|v| v.created_at.as_str())
                 .unwrap_or(timestamp.as_str()),
-            timestamp
+            timestamp,
+            input.source_workflow.as_ref().map(json_string).transpose()?
         ],
     )
     .map_err(|e| format!("无法保存总 Prompt: {e}"))?;
@@ -1775,6 +1796,62 @@ mod tests {
         assert_eq!(without_prompt.title.chars().count(), 28);
 
         drop(state);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn original_graph_survives_sqlite_reload_and_revision_snapshot() {
+        let root = std::env::temp_dir().join(format!("pn-original-{}", uuid::Uuid::new_v4()));
+        let paths = VaultPaths::temporary(root.clone()).unwrap();
+        let state = PromptVaultState::initialize_at(paths.clone()).unwrap();
+        let graph =
+            serde_json::json!({"nodes": [{"id": 1, "type": "CustomPipeline"}], "links": []});
+        let input = SaveRecipeInput {
+            id: Some("original".into()),
+            positive_prompt: "first prompt".into(),
+            source_workflow: Some(SourceWorkflow {
+                format: "workflow".into(),
+                file_name: None,
+                graph: graph.clone(),
+                json: None,
+            }),
+            ..Default::default()
+        };
+        save_recipe_inner(&state, input.clone()).unwrap();
+        let saved = save_recipe_inner(
+            &state,
+            SaveRecipeInput {
+                positive_prompt: "edited prompt".into(),
+                ..input
+            },
+        )
+        .unwrap();
+        assert_eq!(saved.source_workflow.unwrap().graph, graph);
+        let snapshot: String = state
+            .db
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT snapshot_json FROM revisions WHERE entity_id='original'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<Recipe>(&snapshot)
+                .unwrap()
+                .source_workflow
+                .unwrap()
+                .graph,
+            graph
+        );
+        drop(state);
+        let reopened = PromptVaultState::initialize_at(paths).unwrap();
+        let stored = find_recipe(&reopened.db.lock().unwrap(), "original", false, None)
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored.source_workflow.unwrap().graph, graph);
+        drop(reopened);
         let _ = std::fs::remove_dir_all(root);
     }
 

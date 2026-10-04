@@ -22,9 +22,11 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 - [ ] Verify package and backup round trips across Windows machines.
 - [ ] Add structured workspace import/export.
 - [ ] Add a dedicated FLUX/diffusion-model ComfyUI graph template.
+- [x] Preserve imported original graphs, including FLUX and custom nodes, and export them unchanged.
 
 ## 0.3 — Localization and community workflows
 
+- [x] Compare saved recipes and result covers with highlighted prompt, LoRA, and parameter differences.
 - [ ] Move user-facing strings into locale resources.
 - [ ] Ship a complete Simplified Chinese UI locale with automatic detection and a manual override.
 - [ ] Replace remaining low-level Rust diagnostics with stable error codes and localized frontend messages.

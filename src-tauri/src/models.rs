@@ -150,6 +150,8 @@ pub struct Recipe {
     pub model_id: Option<String>,
     pub model_name: Option<String>,
     pub notes: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_workflow: Option<SourceWorkflow>,
     pub favorite: bool,
     pub rating: i64,
     pub loras: Vec<ResourceSnapshot>,
@@ -163,6 +165,48 @@ pub struct Recipe {
     pub prompt_model: String,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SourceWorkflow {
+    pub format: String,
+    #[serde(default)]
+    pub file_name: Option<String>,
+    pub graph: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub json: Option<String>,
+}
+
+impl SourceWorkflow {
+    pub fn is_valid(&self) -> bool {
+        let Ok(value) = self.graph_value() else {
+            return false;
+        };
+        let Some(graph) = value.as_object() else {
+            return false;
+        };
+        match self.format.as_str() {
+            "workflow" => graph
+                .get("nodes")
+                .and_then(Value::as_array)
+                .is_some_and(|nodes| !nodes.is_empty()),
+            "api_prompt" => {
+                !graph.is_empty()
+                    && graph
+                        .values()
+                        .all(|node| node.get("class_type").is_some_and(Value::is_string))
+            }
+            _ => false,
+        }
+    }
+
+    pub fn graph_value(&self) -> Result<Value, serde_json::Error> {
+        self.json
+            .as_ref()
+            .map(|text| serde_json::from_str(text))
+            .unwrap_or_else(|| Ok(self.graph.clone()))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -190,6 +234,8 @@ pub struct SaveRecipeInput {
     pub model_name: Option<String>,
     #[serde(default)]
     pub notes: String,
+    #[serde(default)]
+    pub source_workflow: Option<SourceWorkflow>,
     #[serde(default)]
     pub favorite: bool,
     #[serde(default)]
@@ -224,6 +270,7 @@ impl Default for SaveRecipeInput {
             model_id: None,
             model_name: None,
             notes: String::new(),
+            source_workflow: None,
             favorite: false,
             rating: 0,
             loras: Vec::new(),

@@ -61,6 +61,7 @@ import {
 import { PromptChipEditor } from "./PromptChipEditor";
 import { RevisionHistory } from "./RevisionHistory";
 import { RecipeImportDialog } from "./RecipeImportDialog";
+import { RecipeCompareDialog } from "./RecipeCompareDialog";
 
 type RecipeFilter = "all" | "favorite" | "reproducible" | "draft";
 type EditorTab = "prompt" | "params" | "images";
@@ -468,7 +469,9 @@ function RecipeCard({
         ) : null}
         <div className="recipe-meta">
           <span>{recipe.modelName || "No model selected"}</span>
-          {recipeExportDeferred(recipe, resources) ? (
+          {recipe.sourceWorkflow ? (
+            <span className="export-ready-pill">Original graph</span>
+          ) : recipeExportDeferred(recipe, resources) ? (
             <span className="export-limit-pill">Export later</span>
           ) : recipe.modelId ? (
             <span className="export-ready-pill">Exports</span>
@@ -886,7 +889,7 @@ export function RecipeEditor({
     }
   }
 
-  async function exportComfyUiWorkflow() {
+  async function exportComfyUiWorkflow(source: "recipe" | "original" = "recipe") {
     if (!recipe) return;
     setExportingComfyUi(true);
     try {
@@ -896,7 +899,7 @@ export function RecipeEditor({
         .slice(0, 80) || "promptnook-recipe";
       const targetPath = isDesktopRuntime()
         ? await saveFile({
-            defaultPath: `${fileStem}.comfyui.json`,
+            defaultPath: `${fileStem}.${source === "original" ? "original" : "comfyui"}.json`,
             filters: [{ name: "ComfyUI Workflow JSON", extensions: ["json"] }],
           })
         : undefined;
@@ -904,6 +907,7 @@ export function RecipeEditor({
       const result = await api.exportComfyUiWorkflow(
         recipe.id,
         targetPath ?? undefined,
+        source,
       );
       const warning = result.warnings.length
         ? ` ${result.warnings.join(" ")}`
@@ -1001,6 +1005,13 @@ export function RecipeEditor({
                   : "Export ComfyUI workflow"}
             </Button>
           ) : null}
+          {recipe?.sourceWorkflow ? (
+            <Button variant="secondary" icon={<Download size={16} />} disabled={exportingComfyUi}
+              title="Export the imported graph unchanged; recipe edits are not applied"
+              onClick={() => void exportComfyUiWorkflow("original")}>
+              Export original graph
+            </Button>
+          ) : null}
           {recipe ? (
             <Button
               variant="ghost"
@@ -1056,6 +1067,11 @@ export function RecipeEditor({
             </button>
           </div>
         </div>
+
+        {recipe?.sourceWorkflow ? <p className="original-workflow-notice">
+          Original {recipe.sourceWorkflow.format === "api_prompt" ? "API prompt" : "workflow"} preserved.
+          {" "}Export original graph keeps its nodes and settings unchanged. Recipe edits are only used by the separate recipe workflow exporter after saving.
+        </p> : null}
 
         <Field
           label="Recipe tags"
@@ -1867,6 +1883,7 @@ export function RecipePage({
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [importDrag, setImportDrag] = useState(false);
   const [importFiles, setImportFiles] = useState<File[] | null>(null);
+  const [comparing, setComparing] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
   const importDragDepth = useRef(0);
 
@@ -1934,6 +1951,9 @@ export function RecipePage({
           <p>Drop a ComfyUI PNG or workflow to keep the prompt, model, LoRAs, and settings.</p>
         </div>
         <div className="page-actions">
+          <Button variant="secondary" disabled={recipes.length < 2} onClick={() => setComparing(true)}>
+            Compare recipes
+          </Button>
           <Button
             variant="secondary"
             icon={<WandSparkles size={16} />}
@@ -2004,6 +2024,8 @@ export function RecipePage({
       {importFiles ? <RecipeImportDialog files={importFiles} recipes={recipes} resources={resources}
         privacyMode={privacyMode} onSave={onImportSave ?? onSave} importCover={fileToAsset}
         onClose={() => setImportFiles(null)} onToast={onToast} /> : null}
+      {comparing ? <RecipeCompareDialog recipes={recipes} resources={resources} privacyMode={privacyMode}
+        onClose={() => setComparing(false)} /> : null}
 
       <section className="toolbar">
         <div className="segmented-filter" aria-label="Recipe filters">

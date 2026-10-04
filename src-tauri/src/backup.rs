@@ -975,6 +975,39 @@ mod tests {
     }
 
     #[test]
+    fn original_graph_survives_verified_backup_restore() {
+        let root = std::env::temp_dir().join(format!("pn-source-backup-{}", Uuid::new_v4()));
+        let paths = VaultPaths::temporary(root.clone()).unwrap();
+        let state = PromptVaultState::initialize_at(paths.clone()).unwrap();
+        let source = serde_json::json!({"format": "workflow", "graph": {"nodes": [{"id": 1, "type": "CustomPipeline"}], "links": []}}).to_string();
+        let backup = {
+            let conn = state.db.lock().unwrap();
+            conn.execute("INSERT INTO recipes(id,title,created_at,updated_at,source_workflow_json) VALUES('original','Original','before','before',?1)", [&source]).unwrap();
+            let backup = create_backup_inner(&conn, &paths, "").unwrap();
+            conn.execute(
+                "UPDATE recipes SET source_workflow_json=NULL WHERE id='original'",
+                [],
+            )
+            .unwrap();
+            backup
+        };
+        restore_backup_inner(&state, backup.id, None).unwrap();
+        let restored: String = state
+            .db
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT source_workflow_json FROM recipes WHERE id='original'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(restored, source);
+        drop(state);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
     fn verified_backup_restores_even_when_live_database_is_corrupt() {
         let root = std::env::temp_dir().join(format!("pv-recovery-restore-{}", Uuid::new_v4()));
         let paths = VaultPaths::temporary(root.clone()).unwrap();

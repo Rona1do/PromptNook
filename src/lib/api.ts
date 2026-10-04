@@ -30,6 +30,7 @@ import type {
   RecipeTag,
 } from "../types";
 import { deriveRecipeTitle } from "./recipeTitle";
+import { isSourceWorkflow, originalWorkflowExport } from "./sourceWorkflow";
 import {
   DEFAULT_PROMPT_MODEL_PROFILES,
   normalizePromptModelId,
@@ -555,8 +556,12 @@ function ensureBrowserMemoryLoaded() {
   }
 }
 
-function persistBrowserMemory() {
-  if (isTauriRuntime() || browserPersistenceBlocked) return;
+function persistBrowserMemory(required = false) {
+  if (isTauriRuntime()) return;
+  if (browserPersistenceBlocked) {
+    if (required) throw new Error("The stored browser workspace cannot be updated safely. Back it up before restoring or resetting it.");
+    return;
+  }
   try {
     const snapshot: BrowserMemorySnapshot = {
       version: 1,
@@ -573,7 +578,7 @@ function persistBrowserMemory() {
     };
     window.localStorage.setItem(BROWSER_STORAGE_KEY, JSON.stringify(snapshot));
   } catch {
-    // Private browsing or quota restrictions leave the in-memory session usable.
+    if (required) throw new Error("Browser storage is full or unavailable. This change was not saved. Export a backup or use the desktop app for a larger library.");
   }
 }
 
@@ -754,7 +759,8 @@ export function validateBrowserWorkspaceBackup(
       Array.isArray(item.loras) &&
       isRecord(item.params) &&
       Array.isArray(item.assets) &&
-      isStringArray(item.tagIds),
+      isStringArray(item.tagIds) &&
+      (item.sourceWorkflow === undefined || isSourceWorkflow(item.sourceWorkflow)),
   );
   const validSnippets = isEntityArray(
     value.snippets,
@@ -829,9 +835,20 @@ export function serializeBrowserWorkspaceBackup(): string {
   if (isTauriRuntime()) {
     throw new Error("Browser workspace backups are only available in the browser app.");
   }
+  const snapshot = currentBrowserWorkspaceBackup();
+  const graphObjects = new WeakSet<object>();
+  function preserveGraph(value: unknown) {
+    if (!value || typeof value !== "object") return;
+    graphObjects.add(value);
+    Object.values(value).forEach(preserveGraph);
+  }
+  snapshot.recipes.forEach((recipe) => preserveGraph(recipe.sourceWorkflow?.graph));
   return JSON.stringify(
-    currentBrowserWorkspaceBackup(),
-    (key, value) => {
+    snapshot,
+    function (key, value) {
+      // Keep user-imported node fields intact. App translation settings still
+      // use the explicit credential-free schema above.
+      if (graphObjects.has(this)) return value;
       const normalizedKey = key.replace(/[-_]/g, "").toLowerCase();
       return [
         "apikey",
@@ -863,7 +880,6 @@ function applyBrowserWorkspaceBackup(backup: BrowserWorkspaceBackup) {
   browserMemoryLoaded = true;
   browserPersistenceBlocked = false;
   applyActiveModelDefaults();
-  persistBrowserMemory();
 }
 
 function resetBrowserWorkspaceMemory() {
@@ -881,7 +897,6 @@ function resetBrowserWorkspaceMemory() {
   browserMemoryLoaded = true;
   browserPersistenceBlocked = false;
   applyActiveModelDefaults();
-  persistBrowserMemory();
 }
 
 function downloadBrowserWorkspaceBackup(json: string) {
@@ -906,6 +921,28 @@ export function recipeNeedsTranslation(input: {
   return !(input.positiveTranslation ?? "").trim();
 }
 
+let browserMutationQueue: Promise<unknown> = Promise.resolve();
+function commitBrowserMutation<T>(fallback: () => T | Promise<T>): Promise<T> {
+  const operation = browserMutationQueue.then(async () => {
+    ensureBrowserMemoryLoaded();
+    const previous = structuredClone(memory);
+    const blocked = browserPersistenceBlocked;
+    const credentialConfigured = browserTranslationCredentialConfigured;
+    try {
+      const result = await fallback();
+      persistBrowserMemory(true);
+      return result;
+    } catch (error) {
+      Object.assign(memory, previous);
+      browserPersistenceBlocked = blocked;
+      browserTranslationCredentialConfigured = credentialConfigured;
+      throw error;
+    }
+  });
+  browserMutationQueue = operation.catch(() => undefined);
+  return operation;
+}
+
 async function call<T>(
   command: string,
   args: Record<string, unknown> | undefined,
@@ -913,9 +950,10 @@ async function call<T>(
 ): Promise<T> {
   if (!isTauriRuntime()) {
     ensureBrowserMemoryLoaded();
-    const result = await fallback();
-    persistBrowserMemory();
-    return result;
+    if (/^(save_|delete_|increment_|import_download_|restore_item|purge_item|empty_trash|create_backup)/.test(command)) {
+      return commitBrowserMutation(fallback);
+    }
+    return fallback();
   }
   // A desktop command failure must stay visible. Falling back to the volatile
   // the browser workspace here could make the desktop UI report a successful
@@ -997,6 +1035,9 @@ export const api = {
     });
   },
   async saveRecipe(input: RecipeInput) {
+    if (input.sourceWorkflow !== undefined && !isSourceWorkflow(input.sourceWorkflow)) {
+      throw new Error("The original ComfyUI graph is invalid; the recipe was not saved");
+    }
     // Whole prompts are translated only when requested so saving never waits
     // on a long-running provider call.
     return call<Recipe>("save_recipe", { input }, () => {
@@ -1624,7 +1665,8 @@ export const api = {
         "Browser workspace backups are only available in the browser app.",
       );
     }
-    applyBrowserWorkspaceBackup(validateBrowserWorkspaceBackup(json));
+    const backup = validateBrowserWorkspaceBackup(json);
+    await commitBrowserMutation(() => applyBrowserWorkspaceBackup(backup));
   },
   async resetBrowserWorkspace() {
     if (isTauriRuntime()) {
@@ -1632,7 +1674,7 @@ export const api = {
         "Browser workspace reset is only available in the browser app.",
       );
     }
-    resetBrowserWorkspaceMemory();
+    await commitBrowserMutation(resetBrowserWorkspaceMemory);
   },
   async createBackup() {
     return call<BackupSnapshot>("create_backup", undefined, async () => {
@@ -1674,14 +1716,14 @@ export const api = {
       Promise.resolve(`Demo mode: ${format.toUpperCase()} export prepared`),
     );
   },
-  async exportComfyUiWorkflow(recipeId: string, targetPath?: string) {
+  async exportComfyUiWorkflow(recipeId: string, targetPath?: string, source: "recipe" | "original" = "recipe") {
     return call<ComfyWorkflowExportResult>(
       "export_comfyui_workflow",
-      { recipeId, targetPath },
+      { recipeId, targetPath, ...(source === "original" ? { source } : {}) },
       () => {
         const recipe = memory.recipes.find((item) => item.id === recipeId);
         if (!recipe) throw new Error("Recipe not found");
-        const result = buildBrowserComfyWorkflow(
+        const result = source === "original" ? originalWorkflowExport(recipe) : buildBrowserComfyWorkflow(
           recipe,
           memory.resources,
           memory.settings,
@@ -1690,7 +1732,7 @@ export const api = {
         return {
           path: result.fileName,
           warnings: result.warnings,
-          format: "ComfyUI Workflow JSON 0.4",
+          format: source === "original" ? originalWorkflowExport(recipe).format : "ComfyUI Workflow JSON 0.4",
         };
       },
     );

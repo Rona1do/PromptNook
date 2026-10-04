@@ -160,11 +160,12 @@ export function RecipeImportDialog({ files, recipes, resources, privacyMode, onS
               {row.error ? <p className="import-error" role="alert">{row.error}</p> : null}
               {row.recipe ? <>
                 <div className="import-recipe-meta">
+                  {row.recipe.sourceWorkflow ? <Badge tone="success">Original graph preserved</Badge> : null}
                   <span>{row.recipe.modelName || "Model not found in metadata"}</span>
                   <span>{row.recipe.loras.length} LoRA(s)</span>
                   {row.recipe.params.width && row.recipe.params.height ? <span>{row.recipe.params.width} × {row.recipe.params.height}</span> : null}
                   {row.recipe.params.steps != null ? <span>{row.recipe.params.steps} steps</span> : null}
-                  {recipeExportDeferred(row.recipe, resources) ? <Badge tone="warning">Export later</Badge> : null}
+                  {recipeExportDeferred(row.recipe, resources) ? <Badge tone="warning">Recipe template unavailable</Badge> : null}
                 </div>
                 <details className="import-recipe-details">
                   <summary>Prompt & generation details</summary>
