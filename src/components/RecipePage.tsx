@@ -47,11 +47,7 @@ import type {
 } from "../types";
 import { api, isDesktopRuntime } from "../lib/api";
 import { readableError } from "../lib/errors";
-import {
-  importRecipeFromFile,
-  recipeExportDeferred,
-  toRecipeInput,
-} from "../lib/comfyuiImport";
+import { recipeExportDeferred } from "../lib/comfyuiImport";
 import { deriveRecipeTitle } from "../lib/recipeTitle";
 import {
   detectLorasFromPrompt,
@@ -64,6 +60,7 @@ import {
 } from "../lib/lastGenerationParams";
 import { PromptChipEditor } from "./PromptChipEditor";
 import { RevisionHistory } from "./RevisionHistory";
+import { RecipeImportDialog } from "./RecipeImportDialog";
 
 type RecipeFilter = "all" | "favorite" | "reproducible" | "draft";
 type EditorTab = "prompt" | "params" | "images";
@@ -1839,6 +1836,7 @@ export function RecipePage({
   requestedRecipeId,
   onClearRequestedRecipe,
   onSave,
+  onImportSave,
   onSaveSnippet,
   onDelete,
   onOpenStudio,
@@ -1852,6 +1850,7 @@ export function RecipePage({
   requestedRecipeId?: string;
   onClearRequestedRecipe: () => void;
   onSave: (recipe: RecipeInput) => Promise<void>;
+  onImportSave?: (recipe: RecipeInput) => Promise<void>;
   onSaveSnippet: (
     text: string,
     translation: string,
@@ -1867,65 +1866,9 @@ export function RecipePage({
   const [sort, setSort] = useState<"updated" | "rating" | "usage">("updated");
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [importDrag, setImportDrag] = useState(false);
-  const [importing, setImporting] = useState(false);
+  const [importFiles, setImportFiles] = useState<File[] | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const importDragDepth = useRef(0);
-
-  const importFiles = useCallback(
-    async (files: File[]) => {
-      const accepted = files.filter((file) => {
-        const name = file.name.toLocaleLowerCase();
-        return (
-          file.type === "image/png" ||
-          file.type === "application/json" ||
-          file.type === "text/plain" ||
-          name.endsWith(".png") ||
-          name.endsWith(".json") ||
-          name.endsWith(".txt")
-        );
-      });
-      if (!accepted.length) {
-        onToast("Drop a ComfyUI PNG, workflow JSON, or A1111 parameters text file");
-        return;
-      }
-      setImporting(true);
-      const saved: string[] = [];
-      const problems: string[] = [];
-      try {
-        for (const file of accepted) {
-          try {
-            const draft = await importRecipeFromFile(file);
-            const recipe = toRecipeInput(draft, resources);
-            if (file.type === "image/png" || file.name.toLocaleLowerCase().endsWith(".png")) {
-              try {
-                const asset = await fileToAsset(file);
-                recipe.assets = [asset];
-                recipe.coverAssetId = asset.id;
-              } catch {
-                problems.push(`${file.name}: saved without a cover image`);
-              }
-            }
-            await onSave(recipe);
-            saved.push(file.name);
-          } catch (error) {
-            problems.push(`${file.name}: ${readableError(error)}`);
-          }
-        }
-      } finally {
-        setImporting(false);
-      }
-      if (saved.length === 1 && !problems.length) {
-        onToast(`Saved a recipe from ${saved[0]}`);
-      } else if (saved.length && !problems.length) {
-        onToast(`Saved ${saved.length} recipes`);
-      } else if (saved.length) {
-        onToast(`Saved ${saved.length} recipe(s). ${problems[0]}`);
-      } else {
-        onToast(problems[0] ? `Import failed: ${problems[0]}` : "Nothing to import");
-      }
-    },
-    [onSave, onToast, resources],
-  );
 
   useEffect(() => {
     if (!requestedRecipeId) return;
@@ -2025,36 +1968,42 @@ export function RecipePage({
           event.preventDefault();
           importDragDepth.current = 0;
           setImportDrag(false);
-          void importFiles(Array.from(event.dataTransfer.files));
+          const files = Array.from(event.dataTransfer.files);
+          if (files.length && !importFiles) setImportFiles(files);
         }}
       >
         <FileImage size={22} />
         <div className="import-copy">
-          <strong>{importing ? "Reading generation data…" : "Drop a ComfyUI image or workflow"}</strong>
+          <strong>Drop ComfyUI images or workflows</strong>
           <small>
-            PNG metadata, workflow JSON, or an A1111 parameters file becomes a recipe. Checkpoint graphs can be exported again. FLUX graphs are saved and marked Export later.
+            Import a batch of PNGs, workflow JSON, or A1111 text files. Preview and select recipes before saving; duplicates are skipped by default.
           </small>
         </div>
         <Button
           variant="secondary"
-          disabled={importing}
+          disabled={!!importFiles}
           onClick={() => importRef.current?.click()}
         >
-          Choose file
+          Choose files
         </Button>
         <input
           ref={importRef}
           type="file"
           hidden
           multiple
+          aria-label="Import recipe files"
           accept=".png,.json,.txt,image/png,application/json,text/plain"
           onChange={(event) => {
             const files = Array.from(event.target.files ?? []);
             event.target.value = "";
-            void importFiles(files);
+            if (files.length && !importFiles) setImportFiles(files);
           }}
         />
       </section>
+
+      {importFiles ? <RecipeImportDialog files={importFiles} recipes={recipes} resources={resources}
+        privacyMode={privacyMode} onSave={onImportSave ?? onSave} importCover={fileToAsset}
+        onClose={() => setImportFiles(null)} onToast={onToast} /> : null}
 
       <section className="toolbar">
         <div className="segmented-filter" aria-label="Recipe filters">

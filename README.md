@@ -23,7 +23,7 @@ Drop a ComfyUI PNG or workflow JSON into the [browser workspace](https://rona1do
 ## Try it in 60 seconds
 
 1. Open the [browser workspace](https://rona1do.github.io/PromptNook/).
-2. Drop a ComfyUI PNG or a workflow JSON onto **Recipes**. The prompt, model, ordered LoRAs, and sampler settings become a recipe, and a PNG becomes its cover.
+2. Drop one or more ComfyUI PNGs or workflow JSON files onto **Recipes**. Review the prompts, models, LoRAs, and settings, then choose **Import selected**. PNGs become covers; matching generation duplicates are unchecked by default.
 3. Open that recipe, or the starter **Neon street in the rain**, and choose **Export ComfyUI workflow**. Load the JSON in ComfyUI.
 
 Checkpoint text-to-image graphs export today. A FLUX or other diffusion-model graph is saved and marked **Export later**. The Windows desktop app remains an unsigned beta: it adds folder scanning, SQLite, and verified backups, and Windows may show a SmartScreen warning.
@@ -54,6 +54,7 @@ Unlike a cloud prompt gallery, PromptNook requires no PromptNook account and doe
 
 ## Highlights
 
+- **Batch review and duplicate detection** — preview covers, prompts, models, and settings before importing. Matching generation data in the active workspace or incoming batch is skipped by default; different seeds stay separate. File errors remain visible and failed saves can be retried without saving successful entries again.
 - **Import what you already generated** — drop a ComfyUI PNG, workflow JSON, or A1111 parameters file. The checkpoint or diffusion model, ordered LoRAs, prompts, size, sampler, steps, CFG, and seed become one recipe, and a PNG becomes the cover.
 - **Working browser workspace** — create and edit recipes and snippets with browser-local persistence, then download checkpoint-based ComfyUI workflows without installing PromptNook.
 - **Browser backup and restore** — download a versioned JSON workspace, validate it before restore, or reset to the current English starter workspace. Translation credentials are never exported.

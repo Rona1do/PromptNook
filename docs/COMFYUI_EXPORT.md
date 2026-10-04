@@ -4,7 +4,13 @@ PromptNook v0.2 exports an existing checkpoint-based recipe from either the brow
 
 ## Import
 
-The recipe library accepts a ComfyUI PNG (embedded `workflow` or `prompt` text), a Workflow JSON file, or an A1111 `parameters` block. Drop the file onto **Recipes** or use **Choose file**. Checkpoint loaders, ordered LoRA loaders, prompts, size, sampler, scheduler, steps, CFG, and seed are copied into a new recipe. A PNG is stored as that recipe's cover.
+The recipe library accepts ComfyUI PNGs (embedded `workflow` or `prompt` text), Workflow JSON files, or A1111 `parameters` blocks. Drop one or more files onto **Recipes** or use **Choose files**. The review dialog shows model references and sampling settings; expand a row to inspect its prompts, ordered LoRAs, notes, and PNG cover. Nothing is saved until you click **Import selected**. Prompts and covers stay hidden in privacy mode.
+
+Exact generation duplicates in the active workspace or the current batch are unchecked by default. Comparison includes positive and negative prompts, model references, ordered LoRA strengths and enabled trigger words, dimensions, sampler, scheduler, steps, CFG, and seed. Different seeds are separate recipes; matching titles alone are not duplicates. Titles, covers, tags, and ordinary notes do not affect this comparison. This compares the extracted recipe fields, not every node in the source graph. You can select a duplicate explicitly to keep a second copy.
+
+Files that cannot be parsed remain listed with individual errors while valid files can still be imported. Saved rows remain visible. If a cover import or recipe save fails, its error stays in the dialog and you can retry the unfinished selection without resaving successful rows. **Cancel** closes an unsaved review; **Done** closes the results. Closing is temporarily blocked while selected recipes are being saved.
+
+Checkpoint loaders, ordered LoRA loaders, prompts, size, sampler, scheduler, steps, CFG, and seed are copied into each selected recipe. A PNG is stored as that recipe's cover.
 
 UNET and other diffusion-model graphs, including typical FLUX setups built around `SamplerCustomAdvanced`, are stored with an explicit note. Export keeps refusing them until a tested FLUX template exists, instead of writing a checkpoint graph that would not run.
 

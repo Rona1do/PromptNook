@@ -18,7 +18,7 @@
 ## 60 秒上手
 
 1. 打开[浏览器工作区](https://rona1do.github.io/PromptNook/)。
-2. 把一张 ComfyUI PNG 或 workflow JSON 拖到 **Recipes**。Prompt、模型、按顺序的 LoRA 和采样设置会变成一条配方，PNG 会成为封面。
+2. 把一张或一批 ComfyUI PNG、workflow JSON 拖到 **Recipes**。预览 Prompt、模型、LoRA 和采样设置，勾选后点击 **Import selected** 入库，PNG 会成为封面；重复配方默认不勾选。
 3. 打开这条配方，或示例 **Neon street in the rain**，点击 **Export ComfyUI workflow**，再把 JSON 载入 ComfyUI。
 
 基于 checkpoint 的文生图现在就可以导出。FLUX 或其他 diffusion model 图会保存下来，并标成 **Export later**。Windows 桌面版仍是未签名 beta：它额外提供目录扫描、SQLite 和可校验备份，安装时 Windows 可能会出现 SmartScreen 警告。
@@ -42,6 +42,7 @@ PromptNook 不要求注册云端账号，也不会上传你的资料库；相比
 
 ## 主要功能
 
+- **批量导入预览与去重**：一次选择多张出图和工作流，入库前查看封面、Prompt、模型与参数。当前工作区或本批次中生成信息完全一致的配方默认跳过；不同种子会分别保留。错误逐项显示，保存失败可重试，已成功的条目不会再次保存。
 - **导入已经出好的图**：拖入 ComfyUI PNG、workflow JSON 或 A1111 参数文本。checkpoint 或 diffusion model、按顺序的 LoRA、正负 Prompt、尺寸、采样器、步数、CFG 和种子会收成一条配方，PNG 成为封面。
 - **可实际使用的浏览器工作区**：创建和编辑配方、片段与工作区，刷新后数据仍在，并可直接下载 checkpoint 类型的 ComfyUI 工作流。
 - **浏览器备份与恢复**：导出版本化 JSON，经校验后恢复，或重置到当前英文 starter workspace；翻译凭据绝不会进入导出文件。

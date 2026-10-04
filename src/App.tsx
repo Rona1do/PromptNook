@@ -288,7 +288,7 @@ function App() {
     setSearchOpen(false);
   }
 
-  async function saveRecipe(input: RecipeInput) {
+  async function saveRecipe(input: RecipeInput, notify = true) {
     const recipe = await api.saveRecipe(input);
     setData((current) => {
       if (!current) return current;
@@ -308,7 +308,7 @@ function App() {
         },
       };
     });
-    showToast("Recipe saved");
+    if (notify) showToast("Recipe saved");
   }
 
   async function deleteRecipe(recipe: Recipe) {
@@ -858,6 +858,7 @@ function App() {
                   requestedRecipeId={requestedId("recipe")}
                   onClearRequestedRecipe={() => setRequested(null)}
                   onSave={saveRecipe}
+                  onImportSave={(input) => saveRecipe(input, false)}
                   onSaveSnippet={async (text, translation, sourceTitle) => {
                     const activeModel = normalizePromptModelId(
                       data.settings.activePromptModel,

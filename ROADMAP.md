@@ -30,7 +30,8 @@ This roadmap communicates direction, not a delivery guarantee. Issues and pull r
 - [ ] Replace remaining low-level Rust diagnostics with stable error codes and localized frontend messages.
 - [ ] Document the locale contribution workflow and add localization completeness checks.
 - [ ] Add optional prompt-template variables and reusable parameter presets.
-- [ ] Add duplicate detection and merge assistance.
+- [x] Preview batch imports and skip exact generation duplicates within the active workspace and incoming batch.
+- [ ] Add library-wide duplicate review and merge assistance.
 - [ ] Add a documented plugin/importer boundary without exposing the local database directly.
 - [ ] Evaluate verified macOS and Linux builds with community maintainers.
 

@@ -6,6 +6,7 @@ All notable changes will be documented here. The format follows Keep a Changelog
 
 ### Added
 
+- Review batch imports before saving: preview PNG covers, prompts, models, ordered LoRAs, and sampling settings; select recipes individually; skip exact generation duplicates in the active workspace and current batch by default. File and save errors remain visible, and retry only saves unfinished selections.
 - Import a ComfyUI PNG, workflow JSON, or A1111 parameters file into a recipe from the browser and desktop library. A PNG becomes the recipe cover. Diffusion-model graphs are saved and marked so checkpoint export does not build the wrong graph.
 
 ### Changed
